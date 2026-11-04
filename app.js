@@ -962,3 +962,348 @@ window.UTMT = (function () {
 })(window.UTMT);
 
 document.addEventListener('DOMContentLoaded', () => UTMT.boot2());
+
+/* ================================================================
+   PART 3 — Bug fixes + Named Extraction + Multi-select + Batch
+   Append vào cuối UTMTweb.js. Không cần sửa Part 1/2.
+   ================================================================ */
+(function (U) {
+    'use strict';
+
+    /* ---------- 1. NAMING HELPERS ---------- */
+    const safe = s => String(s || '').replace(/[^a-zA-Z0-9_.-]/g, '_').slice(0, 80) || 'unnamed';
+
+    const Naming = {
+        sprite(i) {
+            const arr = U.UIv2.state.spriteNames || [];
+            return arr[i]?.name ? safe(arr[i].name) : 'sprite_' + i;
+        },
+        audio(i) {
+            const arr = U.UIv2.state.sounds || [];
+            return arr[i]?.name ? safe(arr[i].name) : 'audio_' + i;
+        }
+    };
+
+    /* ---------- 2. SELECTION STATE ---------- */
+    const Selection = {
+        sprites: new Set(),
+        audios: new Set(),
+        clear() { this.sprites.clear(); this.audios.clear(); this._sync(); },
+        toggleSprite(i, on) { on ? this.sprites.add(i) : this.sprites.delete(i); this._sync(); },
+        toggleAudio(i, on)  { on  ? this.audios.add(i)  : this.audios.delete(i);  this._sync(); },
+        _sync() {
+            const $ = id => document.getElementById(id);
+            const sc = $('selSpritesCount'), ac = $('selAudiosCount');
+            const bs = $('btnZipSelectedSprites'), ba = $('btnZipSelectedAudios');
+            if (sc) sc.textContent = this.sprites.size;
+            if (ac) ac.textContent = this.audios.size;
+            if (bs) bs.disabled = this.sprites.size === 0;
+            if (ba) ba.disabled = this.audios.size === 0;
+        }
+    };
+
+    /* ---------- 3. OVERRIDE loadFile (FIX BUG 3 + 10) ---------- */
+    const _origLoadFile = U.UIv2.loadFile;
+    U.UIv2.loadFile = async function (file) {
+        // reset input để chọn lại cùng file
+        if (this.els.fileInput) this.els.fileInput.value = '';
+        // reset selection khi load file mới
+        Selection.clear();
+        try {
+            await _origLoadFile.call(this, file);
+            // enable buttons sau khi load thành công
+            const E = this.els;
+            ['btnZipAll', 'btnExportJSON', 'btnZipSprites', 'btnZipAudio']
+                .forEach(id => { const el = document.getElementById(id); if (el) el.disabled = false; });
+        } catch (e) {
+            this._progress(false);
+            this.log('Lỗi load: ' + e.message, 'err');
+        }
+    };
+
+    /* ---------- 4. OVERRIDE _bindTheme (FIX BUG 2) ---------- */
+    U.UIv2._bindTheme = function () {
+        let saved = 'dark';
+        try { saved = localStorage.getItem('utmt-theme') || 'dark'; } catch (_) {}
+        document.documentElement.setAttribute('data-theme', saved);
+
+        const btn = this.els.themeToggle;
+        if (!btn) return;
+        btn.onclick = () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            const next = cur === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            try { localStorage.setItem('utmt-theme', next); } catch (_) {}
+            if (this.log) this.log('Theme: ' + next, 'info');
+        };
+    };
+
+    /* ---------- 5. OVERRIDE _renderSprites (FIX BUG 4, 7 + multi-select) ---------- */
+    U.UIv2._renderSprites = function () {
+        // revoke URL cũ
+        (this._spriteURLs || []).forEach(u => { try { URL.revokeObjectURL(u); } catch (_) {} });
+        this._spriteURLs = [];
+
+        const g = this.els.spriteGrid;
+        if (!g) return;
+        if (!this.state.sprites.length) {
+            g.innerHTML = '<div class="empty">Không tìm thấy sprite PNG trong TXTR</div>';
+            return;
+        }
+
+        const frag = document.createDocumentFragment();
+        this.state.sprites.forEach((png, i) => {
+            const url = U.Preview.spriteURL(png);
+            this._spriteURLs.push(url);
+            const name = Naming.sprite(i);
+
+            const card = document.createElement('div');
+            card.className = 'sprite-card';
+            card.dataset.i = i;
+            card.innerHTML = `
+                <span class="card-check"><input type="checkbox" data-type="sprite" data-i="${i}"></span>
+                <img src="${url}" alt="${name}" loading="lazy">
+                <div class="sprite-meta">
+                    <span class="name" title="${name}">${name}</span>
+                    <span>${U.Utils.formatBytes(png.length)}</span>
+                </div>`;
+
+            const cb = card.querySelector('input');
+            cb.onclick = e => e.stopPropagation();
+            cb.onchange = e => {
+                Selection.toggleSprite(i, e.target.checked);
+                card.classList.toggle('selected', e.target.checked);
+            };
+
+            card.onclick = () => {
+                this._download(name + '.png', new Blob([png], { type: 'image/png' }));
+            };
+            frag.appendChild(card);
+        });
+        g.innerHTML = '';
+        g.appendChild(frag);
+    };
+
+    /* ---------- 6. OVERRIDE _renderAudio (FIX BUG 4, 6 + multi-select) ---------- */
+    U.UIv2._renderAudio = function () {
+        (this._audioURLs || []).forEach(u => { try { URL.revokeObjectURL(u); } catch (_) {} });
+        this._audioURLs = [];
+
+        const L = this.els.audioList;
+        if (!L) return;
+        if (!this.state.audios.length) {
+            L.innerHTML = '<div class="empty">Không tìm thấy audio trong AUDO</div>';
+            return;
+        }
+
+        L.innerHTML = '';
+        this.state.audios.forEach((a, i) => {
+            const url = U.Preview.audioURL(a);
+            this._audioURLs.push(url);
+            const name = Naming.audio(i);
+
+            const item = document.createElement('div');
+            item.className = 'audio-item';
+            item.dataset.i = i;
+            item.innerHTML = `
+                <span class="card-check"><input type="checkbox" data-type="audio" data-i="${i}"></span>
+                <div class="audio-info">
+                    <div class="name" title="${name}">${name}.${a.format}</div>
+                    <small>${U.Utils.formatBytes(a.data.length)}</small>
+                </div>
+                <audio controls preload="none" src="${url}"></audio>
+                <button class="btn" type="button">⬇</button>`;
+
+            const cb = item.querySelector('input');
+            cb.onchange = e => {
+                Selection.toggleAudio(i, e.target.checked);
+                item.classList.toggle('selected', e.target.checked);
+            };
+
+            item.querySelector('button').onclick = () => {
+                this._download(`${name}.${a.format}`, new Blob([a.data]));
+            };
+            L.appendChild(item);
+        });
+    };
+
+    /* ---------- 7. NAMED ZIP EXPORT ---------- */
+    U.UIv2.zipSprites = async function () {
+        if (!this.state.sprites.length) return this.log('Không có sprite', 'warn');
+        return this._zipSet('sprites', this.state.sprites.map((_, i) => i));
+    };
+
+    U.UIv2.zipAudios = async function () {
+        if (!this.state.audios.length) return this.log('Không có audio', 'warn');
+        return this._zipSet('audios', this.state.audios.map((_, i) => i));
+    };
+
+    U.UIv2.zipSelectedSprites = async function () {
+        const ids = [...Selection.sprites];
+        if (!ids.length) return this.log('Chưa chọn sprite nào', 'warn');
+        return this._zipSet('sprites', ids);
+    };
+
+    U.UIv2.zipSelectedAudios = async function () {
+        const ids = [...Selection.audios];
+        if (!ids.length) return this.log('Chưa chọn audio nào', 'warn');
+        return this._zipSet('audios', ids);
+    };
+
+    U.UIv2._zipSet = async function (kind, ids) {
+        const isSprite = kind === 'sprites';
+        const total = ids.length;
+        this._progress(true, 0, `Đang nén ${total} ${kind}...`);
+        const z = new U.ZipWriterV2();
+        const s = this.state;
+
+        ids.forEach((idx, n) => {
+            if (isSprite) {
+                const name = Naming.sprite(idx);
+                z.add(`${kind}/${name}.png`, s.sprites[idx]);
+            } else {
+                const name = Naming.audio(idx);
+                z.add(`${kind}/${name}.${s.audios[idx].format}`, s.audios[idx].data);
+            }
+        });
+
+        try {
+            const blob = await z.build((d, t) =>
+                this._progress(true, d / t * 100, `Nén ${d}/${t}`));
+            const suffix = ids.length === (isSprite ? s.sprites.length : s.audios.length)
+                ? '' : `_selected_${ids.length}`;
+            this._download(`${s.fileName}_${kind}${suffix}.zip`, blob);
+            this.log(`✔ ZIP ${kind} (${total})`, 'ok');
+        } catch (e) {
+            this.log('Lỗi nén: ' + e.message, 'err');
+        } finally {
+            this._progress(false);
+        }
+    };
+
+    /* ---------- 8. ZIP ALL (named, organized) ---------- */
+    U.UIv2.zipAll = async function () {
+        const s = this.state;
+        if (!s.parsed) return this.log('Chưa load file', 'warn');
+        this._progress(true, 0, 'Đang nén tất cả...');
+
+        const z = new U.ZipWriterV2();
+        const manifest = { fileName: s.fileName, version: s.parsed.version, files: [] };
+
+        // sprites
+        s.sprites.forEach((d, i) => {
+            const name = Naming.sprite(i);
+            const path = `sprites/${name}.png`;
+            z.add(path, d);
+            manifest.files.push({ path, type: 'sprite', size: d.length });
+        });
+
+        // audio
+        s.audios.forEach((a, i) => {
+            const name = Naming.audio(i);
+            const path = `audio/${name}.${a.format}`;
+            z.add(path, a.data);
+            manifest.files.push({ path, type: 'audio', size: a.data.length });
+        });
+
+        // strings
+        if (s.strings.length) {
+            const txt = s.strings.join('\n');
+            z.add('strings/all.txt', txt);
+            manifest.files.push({ path: 'strings/all.txt', type: 'text' });
+        }
+
+        // code
+        s.codes.forEach((c, i) => {
+            const path = `code/code_${i}.txt`;
+            z.add(path, c.strings.join('\n'));
+            manifest.files.push({ path, type: 'code' });
+        });
+
+        // metadata
+        const meta = {
+            objects: s.objects, rooms: s.rooms, fonts: s.fonts,
+            backgrounds: s.backgrounds, sounds: s.sounds,
+            spriteNames: s.spriteNames, tpag: s.tpag
+        };
+        Object.entries(meta).forEach(([k, v]) => {
+            if (!v || !v.length) return;
+            const path = `metadata/${k}.json`;
+            z.add(path, JSON.stringify(v, null, 2));
+            manifest.files.push({ path, type: 'json' });
+        });
+
+        // manifest
+        z.add('manifest.json', JSON.stringify(manifest, null, 2));
+
+        try {
+            const blob = await z.build((d, t) =>
+                this._progress(true, d / t * 100, `Nén ${d}/${t}`));
+            this._download(`${s.fileName}_full.zip`, blob);
+            this.log(`✔ ZIP đầy đủ (${z.entries.length} mục)`, 'ok');
+        } catch (e) {
+            this.log('Lỗi nén: ' + e.message, 'err');
+        } finally {
+            this._progress(false);
+        }
+    };
+
+    /* ---------- 9. BIND NEW BUTTONS + FIX TABS ---------- */
+    const origInit = U.UIv2.init;
+    U.UIv2.init = function () {
+        origInit.call(this);
+        const $ = id => document.getElementById(id);
+
+        // fix tabs nếu init xảy ra khi chưa có DOM (bug 9 phòng xa)
+        this._bindTabs();
+
+        // multi-select buttons
+        $('btnSelectAllSprites')?.addEventListener('click', () => {
+            document.querySelectorAll('#spriteGrid input[type=checkbox]').forEach(cb => {
+                cb.checked = true;
+                Selection.toggleSprite(+cb.dataset.i, true);
+                cb.closest('.sprite-card').classList.add('selected');
+            });
+        });
+        $('btnClearSprites')?.addEventListener('click', () => {
+            document.querySelectorAll('#spriteGrid input[type=checkbox]').forEach(cb => {
+                cb.checked = false;
+                cb.closest('.sprite-card').classList.remove('selected');
+            });
+            Selection.sprites.clear();
+            Selection._sync();
+        });
+        $('btnSelectAllAudios')?.addEventListener('click', () => {
+            document.querySelectorAll('#audioList input[type=checkbox]').forEach(cb => {
+                cb.checked = true;
+                Selection.toggleAudio(+cb.dataset.i, true);
+                cb.closest('.audio-item').classList.add('selected');
+            });
+        });
+        $('btnClearAudios')?.addEventListener('click', () => {
+            document.querySelectorAll('#audioList input[type=checkbox]').forEach(cb => {
+                cb.checked = false;
+                cb.closest('.audio-item').classList.remove('selected');
+            });
+            Selection.audios.clear();
+            Selection._sync();
+        });
+
+        $('btnZipSelectedSprites')?.addEventListener('click', () => this.zipSelectedSprites());
+        $('btnZipSelectedAudios')?.addEventListener('click', () => this.zipSelectedAudios());
+
+        this.log('UTMT Web v3 ready.', 'info');
+    };
+
+    /* ---------- 10. EXPORT ---------- */
+    U.Naming = Naming;
+    U.Selection = Selection;
+    U.V3Ready = true;
+
+    // boot v3 (defer script → DOM đã ready)
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => U.boot2?.());
+    } else {
+        U.boot2?.();
+    }
+})(window.UTMT);
