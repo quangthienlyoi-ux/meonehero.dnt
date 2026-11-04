@@ -3,32 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1a1a1a">
+<meta name="theme-color" content="#0f0f0f">
 <title>UTMT Web — Undertale Mod Tool</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-
 :root[data-theme="dark"]{
-    --bg:#0f0f0f; --surface:#1a1a1a; --surface2:#252525; --surface3:#2f2f2f;
-    --border:#333; --text:#eee; --text-dim:#999;
-    --accent:#7ec8ff; --accent-bg:#1e3a4f;
-    --ok:#7ed77e; --warn:#e8c45c; --danger:#ff6b6b;
+    --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#252525;--surface3:#2f2f2f;
+    --border:#333;--text:#eee;--text-dim:#999;--accent:#7ec8ff;
+    --accent-bg:#1e3a4f;--ok:#7ed77e;--warn:#e8c45c;--danger:#ff6b6b;
     --shadow:0 4px 12px rgba(0,0,0,.5);
 }
 :root[data-theme="light"]{
-    --bg:#f5f6f8; --surface:#fff; --surface2:#f0f2f5; --surface3:#e4e6ea;
-    --border:#d8dde3; --text:#1a1f26; --text-dim:#5f6875;
-    --accent:#2196f3; --accent-bg:#e3f2fd;
-    --ok:#2e7d32; --warn:#f57c00; --danger:#c62828;
+    --bg:#f5f6f8;--surface:#fff;--surface2:#f0f2f5;--surface3:#e4e6ea;
+    --border:#d8dde3;--text:#1a1f26;--text-dim:#5f6875;--accent:#2196f3;
+    --accent-bg:#e3f2fd;--ok:#2e7d32;--warn:#f57c00;--danger:#c62828;
     --shadow:0 4px 12px rgba(0,0,0,.08);
 }
-
 html,body{background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
     line-height:1.5;-webkit-font-smoothing:antialiased;
     transition:background .2s,color .2s}
-
-/* HEADER */
 .app-header{position:sticky;top:0;z-index:100;background:var(--surface);
     border-bottom:1px solid var(--border);padding:.75rem 1rem;
     display:flex;justify-content:space-between;align-items:center;
@@ -41,11 +35,7 @@ html,body{background:var(--bg);color:var(--text);
     border-radius:8px;width:36px;height:36px;display:inline-flex;
     align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem}
 .btn-icon:hover{background:var(--surface3)}
-
-/* MAIN */
 .app-main{max-width:1200px;margin:0 auto;padding:1rem;padding-bottom:100px}
-
-/* DROP ZONE */
 .drop-zone{display:block;border:2px dashed var(--border);border-radius:16px;
     padding:2rem 1rem;text-align:center;cursor:pointer;
     transition:all .2s;background:var(--surface);margin-bottom:1rem}
@@ -54,8 +44,6 @@ html,body{background:var(--bg);color:var(--text);
 .drop-icon{font-size:3rem;margin-bottom:.5rem}
 .drop-title{font-size:1rem;margin-bottom:.25rem}
 .drop-hint{color:var(--text-dim);font-size:.9rem}
-
-/* PROGRESS */
 .progress{display:none;background:var(--surface);border:1px solid var(--border);
     border-radius:12px;padding:1rem;margin-bottom:1rem}
 .progress.active{display:block}
@@ -64,8 +52,6 @@ html,body{background:var(--bg);color:var(--text);
 .progress-track{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
 .progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--ok));
     width:0%;transition:width .3s ease}
-
-/* FILE INFO */
 .file-info{background:var(--surface);border:1px solid var(--border);
     border-radius:12px;padding:1rem;margin-bottom:1rem}
 .file-info.hidden{display:none}
@@ -77,8 +63,6 @@ html,body{background:var(--bg);color:var(--text);
 .count-card{background:var(--surface2);border-radius:8px;padding:.5rem;text-align:center}
 .count-card b{display:block;font-size:1.1rem;color:var(--accent)}
 .count-card span{font-size:.75rem;color:var(--text-dim)}
-
-/* TABS */
 .tabs{display:flex;gap:.25rem;overflow-x:auto;padding-bottom:.5rem;
     margin-bottom:1rem;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 .tabs::-webkit-scrollbar{height:4px}
@@ -88,42 +72,50 @@ html,body{background:var(--bg);color:var(--text);
     cursor:pointer;font-size:.9rem;white-space:nowrap;transition:all .15s}
 .tab:hover{background:var(--surface2)}
 .tab.active{background:var(--accent);color:white;border-color:var(--accent)}
-
-/* PANELS */
 .panel{display:none;animation:fadeIn .2s}
 .panel.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .panel h2{font-size:1.1rem;margin-bottom:.75rem}
 .panel-header{display:flex;justify-content:space-between;align-items:center;
     gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap}
-
-/* CHUNK GRID */
+.toolbar{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
 .chunk-grid{display:flex;flex-wrap:wrap;gap:.4rem}
 .chunk-item{display:flex;gap:.4rem;align-items:baseline;background:var(--surface);
     border:1px solid var(--border);padding:.35rem .6rem;border-radius:6px;font-size:.85rem}
 .chunk-item b{color:var(--accent)}
 .chunk-size{color:var(--text-dim);font-size:.8rem}
-
-/* SPRITE GRID */
 .sprite-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.75rem}
-.sprite-card{background:var(--surface);border:1px solid var(--border);
+.sprite-card{position:relative;background:var(--surface);border:1px solid var(--border);
     border-radius:8px;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s}
 .sprite-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.sprite-card.selected{border-color:var(--accent);background:var(--accent-bg)}
 .sprite-card img{display:block;width:100%;height:100px;object-fit:contain;
     background:repeating-conic-gradient(var(--surface2) 0 25%,var(--surface3) 0 50%) 50%/16px 16px;
     padding:4px}
 .sprite-meta{display:flex;justify-content:space-between;padding:.35rem .5rem;
-    font-size:.75rem;color:var(--text-dim)}
-
-/* AUDIO LIST */
+    font-size:.72rem;color:var(--text-dim);gap:.3rem}
+.sprite-meta .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    color:var(--text);font-weight:500;flex:1;min-width:0}
+.card-check{position:absolute;top:6px;right:6px;z-index:2;cursor:pointer;
+    background:var(--surface);border-radius:4px;padding:2px;line-height:0}
+.card-check input{width:20px;height:20px;cursor:pointer;accent-color:var(--accent)}
 .audio-list{display:flex;flex-direction:column;gap:.5rem}
-.audio-item{display:flex;align-items:center;gap:.75rem;background:var(--surface);
-    border:1px solid var(--border);padding:.5rem .75rem;border-radius:8px;flex-wrap:wrap}
+.audio-item{position:relative;display:flex;align-items:center;gap:.75rem;
+    background:var(--surface);border:1px solid var(--border);
+    padding:.5rem .75rem;border-radius:8px;flex-wrap:wrap}
+.audio-item.selected{border-color:var(--accent);background:var(--accent-bg)}
+.audio-item .card-check{position:static;order:-1}
 .audio-info{flex:1;min-width:120px}
-.audio-info small{display:block;color:var(--text-dim);font-size:.8rem}
+.audio-info .name{font-weight:500;font-size:.9rem;word-break:break-all}
+.audio-info small{display:block;color:var(--text-dim);font-size:.78rem}
 .audio-item audio{height:32px;max-width:280px;flex:1}
-
-/* STRING LIST */
+.btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+    padding:.5rem .9rem;border-radius:8px;cursor:pointer;font-size:.9rem;
+    white-space:nowrap;transition:background .15s}
+.btn:hover{background:var(--surface3)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.primary{background:var(--accent);color:white;border-color:var(--accent)}
+.btn.primary:hover:not(:disabled){filter:brightness(1.1)}
 .search{background:var(--surface);border:1px solid var(--border);color:var(--text);
     padding:.5rem .75rem;border-radius:8px;font-size:.9rem;min-width:200px;flex:1;max-width:320px}
 .search:focus{outline:2px solid var(--accent);outline-offset:1px}
@@ -135,8 +127,6 @@ html,body{background:var(--bg);color:var(--text);
 .string-row:hover{background:var(--surface2)}
 .more-notice{padding:.75rem;text-align:center;color:var(--text-dim);
     font-size:.85rem;font-style:italic}
-
-/* CODE LIST */
 .code-list{display:flex;flex-direction:column;gap:.75rem}
 .code-chunk{background:var(--surface);border:1px solid var(--border);
     border-radius:8px;overflow:hidden}
@@ -144,22 +134,13 @@ html,body{background:var(--bg);color:var(--text);
     font-size:.85rem;color:var(--accent);border-bottom:1px solid var(--border)}
 .code-chunk pre{padding:.75rem;font-family:monospace;font-size:.8rem;
     max-height:300px;overflow:auto;white-space:pre-wrap;word-break:break-all}
-
-/* LOG */
 .log{background:var(--surface);border:1px solid var(--border);border-radius:8px;
     padding:.75rem;font-family:monospace;font-size:.8rem;height:400px;overflow-y:auto}
 .log-info{color:var(--text-dim)}
 .log-ok{color:var(--ok)}
 .log-warn{color:var(--warn)}
 .log-err{color:var(--danger)}
-
-/* BUTTON */
-.btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);
-    padding:.5rem .9rem;border-radius:8px;cursor:pointer;font-size:.9rem;
-    white-space:nowrap;transition:background .15s}
-.btn:hover{background:var(--surface3)}
-
-/* ACTION BAR / FAB */
+.empty{padding:2rem;text-align:center;color:var(--text-dim);font-style:italic}
 .action-bar{position:fixed;bottom:0;left:0;right:0;padding:.75rem;
     background:var(--surface);border-top:1px solid var(--border);
     display:flex;gap:.5rem;z-index:50;box-shadow:0 -4px 12px rgba(0,0,0,.2)}
@@ -168,12 +149,9 @@ html,body{background:var(--bg);color:var(--text);
     padding:.75rem;border-radius:12px;font-size:.9rem;cursor:pointer;
     font-weight:500;transition:all .15s}
 .fab.primary{background:var(--accent);color:white;border-color:var(--accent)}
-.fab.primary:hover{filter:brightness(1.1)}
-.fab:hover{transform:translateY(-1px)}
-
-.empty{padding:2rem;text-align:center;color:var(--text-dim);font-style:italic}
-
-/* DESKTOP */
+.fab.primary:hover:not(:disabled){filter:brightness(1.1)}
+.fab:hover:not(:disabled){transform:translateY(-1px)}
+.fab:disabled{opacity:.4;cursor:not-allowed;transform:none}
 @media (min-width:768px){
     .app-main{padding:1.5rem;padding-bottom:1.5rem}
     .drop-zone{padding:3rem 2rem}
@@ -182,16 +160,16 @@ html,body{background:var(--bg);color:var(--text);
     .sprite-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
     .sprite-card img{height:130px}
     .action-bar{position:static;background:transparent;border:none;
-        box-shadow:none;padding:1rem 0;margin-top:1rem;max-width:420px}
+        box-shadow:none;padding:1rem 0;margin-top:1rem;max-width:480px}
     .fab{padding:.6rem 1.2rem}
     .tabs{gap:.5rem}
     .tab{padding:.6rem 1.2rem;font-size:.95rem}
 }
-
-/* MOBILE */
 @media (max-width:767px){
     .file-info-main{flex-direction:column;align-items:flex-start}
     .panel-header{flex-direction:column;align-items:stretch}
+    .toolbar{justify-content:stretch}
+    .toolbar .btn{flex:1}
     .search{max-width:none}
     .audio-item audio{width:100%;max-width:none}
     .fab-label{font-size:.8rem}
@@ -204,20 +182,21 @@ html,body{background:var(--bg);color:var(--text);
 <header class="app-header">
     <div class="brand">
         <h1>UTMT Web</h1>
-        <span class="version">v2.0</span>
+        <span class="version">v3.0</span>
     </div>
-    <button id="themeToggle" class="btn-icon" title="Đổi giao diện">🌓</button>
+    <button id="themeToggle" class="btn-icon" title="Đổi giao diện" type="button">🌓</button>
 </header>
 
 <main class="app-main">
-    <section id="dropZone" class="drop-zone">
+    <!-- ✅ FIX BUG 1: dùng <label for> để click luôn hoạt động -->
+    <label id="dropZone" class="drop-zone" for="fileInput">
         <input type="file" id="fileInput" accept=".win,.droid">
-        <div class="drop-content">
-            <div class="drop-icon">📁</div>
-            <div class="drop-title">Kéo thả <b>data.win</b> hoặc <b>game.droid</b></div>
-            <div class="drop-hint">Hoặc bấm để chọn file</div>
-        </div>
-    </section>
+        <span class="drop-content">
+            <span class="drop-icon">📁</span>
+            <span class="drop-title">Kéo thả <b>data.win</b> hoặc <b>game.droid</b></span>
+            <span class="drop-hint">Hoặc bấm để chọn file</span>
+        </span>
+    </label>
 
     <div id="progress" class="progress">
         <div class="progress-info"><span id="progressText">Đang xử lý…</span></div>
@@ -233,12 +212,12 @@ html,body{background:var(--bg);color:var(--text);
     </section>
 
     <nav class="tabs" role="tablist">
-        <button data-tab="overview" class="tab active">📊 Tổng quan</button>
-        <button data-tab="sprites" class="tab">🖼️ Sprites</button>
-        <button data-tab="audio" class="tab">🎵 Audio</button>
-        <button data-tab="strings" class="tab">📝 Strings</button>
-        <button data-tab="code" class="tab">💻 Code</button>
-        <button data-tab="log" class="tab">📋 Log</button>
+        <button type="button" data-tab="overview" class="tab active">📊 Tổng quan</button>
+        <button type="button" data-tab="sprites" class="tab">🖼️ Sprites</button>
+        <button type="button" data-tab="audio" class="tab">🎵 Audio</button>
+        <button type="button" data-tab="strings" class="tab">📝 Strings</button>
+        <button type="button" data-tab="code" class="tab">💻 Code</button>
+        <button type="button" data-tab="log" class="tab">📋 Log</button>
     </nav>
 
     <div class="panels">
@@ -250,7 +229,14 @@ html,body{background:var(--bg);color:var(--text);
         <section data-panel="sprites" class="panel">
             <div class="panel-header">
                 <h2>Sprites (PNG)</h2>
-                <button id="btnZipSprites" class="btn">🗜 ZIP Sprites</button>
+                <div class="toolbar">
+                    <button type="button" id="btnSelectAllSprites" class="btn">☑ Chọn hết</button>
+                    <button type="button" id="btnClearSprites" class="btn">✖ Bỏ chọn</button>
+                    <button type="button" id="btnZipSelectedSprites" class="btn primary" disabled>
+                        ⬇ Tải đã chọn (<span id="selSpritesCount">0</span>)
+                    </button>
+                    <button type="button" id="btnZipSprites" class="btn">🗜 ZIP tất cả</button>
+                </div>
             </div>
             <div id="spriteGrid" class="sprite-grid"></div>
         </section>
@@ -258,7 +244,14 @@ html,body{background:var(--bg);color:var(--text);
         <section data-panel="audio" class="panel">
             <div class="panel-header">
                 <h2>Audio</h2>
-                <button id="btnZipAudio" class="btn">🗜 ZIP Audio</button>
+                <div class="toolbar">
+                    <button type="button" id="btnSelectAllAudios" class="btn">☑ Chọn hết</button>
+                    <button type="button" id="btnClearAudios" class="btn">✖ Bỏ chọn</button>
+                    <button type="button" id="btnZipSelectedAudios" class="btn primary" disabled>
+                        ⬇ Tải đã chọn (<span id="selAudiosCount">0</span>)
+                    </button>
+                    <button type="button" id="btnZipAudio" class="btn">🗜 ZIP tất cả</button>
+                </div>
             </div>
             <div id="audioList" class="audio-list"></div>
         </section>
@@ -284,14 +277,15 @@ html,body{background:var(--bg);color:var(--text);
 </main>
 
 <div class="action-bar">
-    <button id="btnZipAll" class="fab primary">
+    <button type="button" id="btnZipAll" class="fab primary" disabled>
         <span>🗜</span><span class="fab-label">ZIP tất cả</span>
     </button>
-    <button id="btnExportJSON" class="fab">
+    <button type="button" id="btnExportJSON" class="fab" disabled>
         <span>💾</span><span class="fab-label">Metadata JSON</span>
     </button>
 </div>
 
-<script src="UTMTweb.js"></script>
+<!-- ✅ FIX BUG 9: defer để DOM chắc chắn ready -->
+<script src="UTMTweb.js" defer></script>
 </body>
-</html>
+    </html>
