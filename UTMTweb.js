@@ -1307,3 +1307,129 @@ document.addEventListener('DOMContentLoaded', () => UTMT.boot2());
         U.boot2?.();
     }
 })(window.UTMT);
+
+/* ================================================================
+   PART 4 — Brute-force Extractor (Fix triệt để lỗi không giải mã)
+   Append vào cuối UTMTweb.js.
+   ================================================================ */
+(function (U) {
+    'use strict';
+
+    const BruteForce = {
+        // Trích xuất tất cả PNG từ buffer
+        extractPNGs(buffer) {
+            const bytes = new Uint8Array(buffer);
+            const pngs = [];
+            const startSig = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+            const endSig = [0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82];
+            
+            let i = 0;
+            while (i < bytes.length - 8) {
+                // Tìm start signature
+                let isStart = true;
+                for (let j = 0; j < 8; j++) {
+                    if (bytes[i + j] !== startSig[j]) { isStart = false; break; }
+                }
+                if (!isStart) { i++; continue; }
+
+                // Tìm end signature từ i+8
+                let end = i + 8;
+                while (end < bytes.length - 8) {
+                    let isEnd = true;
+                    for (let k = 0; k < 8; k++) {
+                        if (bytes[end + k] !== endSig[k]) { isEnd = false; break; }
+                    }
+                    if (isEnd) break;
+                    end++;
+                }
+
+                if (end < bytes.length - 8) {
+                    // PNG hoàn chỉnh từ i đến end+8
+                    pngs.push(bytes.slice(i, end + 8));
+                    i = end + 8;
+                } else {
+                    i++;
+                }
+            }
+            return pngs;
+        },
+
+        // Trích xuất tất cả WAV và OGG từ buffer
+        extractAudio(buffer) {
+            const bytes = new Uint8Array(buffer);
+            const audios = [];
+            
+            for (let i = 0; i < bytes.length - 12; i++) {
+                // WAV: RIFF....WAVE
+                if (bytes[i] === 0x52 && bytes[i+1] === 0x49 && bytes[i+2] === 0x46 && bytes[i+3] === 0x46 &&
+                    bytes[i+8] === 0x57 && bytes[i+9] === 0x41 && bytes[i+10] === 0x56 && bytes[i+11] === 0x45) {
+                    
+                    const view = new DataView(buffer, i);
+                    const size = view.getUint32(4, true) + 8; // Kích thước RIFF
+                    if (i + size <= bytes.length) {
+                        audios.push({ format: 'wav', data: bytes.slice(i, i + size) });
+                        i += size - 1; // Nhảy qua file WAV vừa tìm
+                    }
+                }
+                // OGG: OggS
+                else if (bytes[i] === 0x4F && bytes[i+1] === 0x67 && bytes[i+2] === 0x67 && bytes[i+3] === 0x53) {
+                    // Với OGG, rất khó xác định chính xác điểm kết thúc nếu không parse page.
+                    // Tạm thời lấy từ i đến hết chunk hoặc đến khi gặp OggS tiếp theo.
+                    // Cách đơn giản: tìm OggS tiếp theo hoặc lấy đến cuối buffer (sẽ dư một chút).
+                    let end = i + 4;
+                    while (end < bytes.length - 4) {
+                        if (bytes[end] === 0x4F && bytes[end+1] === 0x67 && bytes[end+2] === 0x67 && bytes[end+3] === 0x53) {
+                            break;
+                        }
+                        end++;
+                    }
+                    audios.push({ format: 'ogg', data: bytes.slice(i, end) });
+                    i = end - 1;
+                }
+            }
+            return audios;
+        }
+    };
+
+    // Ghi đè phương thức extractAll để dùng brute-force
+    const originalExtractAll = U.Extractor.extractAll;
+    U.Extractor.extractAll = function(parsed) {
+        const res = originalExtractAll.call(this, parsed); // Giữ metadata (SPRT, SOND, ...)
+        
+        // Lấy buffer gốc từ parsed
+        // Lưu ý: parsed không chứa buffer gốc, nên ta cần lấy từ state hoặc truyền vào.
+        // Trong UIv2.loadFile, parsed được gán vào state.parsed. Ta sẽ đọc buffer từ đó.
+        const buffer = U.UIv2.state.parsed?.buffer; // Cần đảm bảo IFF.parse lưu buffer gốc
+        if (!buffer) {
+            console.warn('Không có buffer gốc để brute-force.');
+            return res;
+        }
+
+        // Ghi đè sprites và audios bằng brute-force
+        const bruteSprites = BruteForce.extractPNGs(buffer);
+        const bruteAudios = BruteForce.extractAudio(buffer);
+
+        if (bruteSprites.length > 0) {
+            res.sprites = bruteSprites;
+            console.log(`Brute-force tìm thấy ${bruteSprites.length} PNG.`);
+        }
+        if (bruteAudios.length > 0) {
+            res.audios = bruteAudios;
+            console.log(`Brute-force tìm thấy ${bruteAudios.length} audio.`);
+        }
+
+        return res;
+    };
+
+    // Đảm bảo IFF.parse lưu buffer gốc vào kết quả
+    const originalParse = U.IFF.parse;
+    U.IFF.parse = function(buffer) {
+        const result = originalParse.call(this, buffer);
+        result.buffer = buffer; // Lưu buffer gốc
+        return result;
+    };
+
+    U.BruteForce = BruteForce;
+    U.V4Ready = true;
+    console.log('UTMT Web v4 — Brute-force extractor đã sẵn sàng.');
+})(window.UTMT);
