@@ -1,291 +1,1693 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="dark">
+<html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f0f0f">
-<title>UTMT Web — Undertale Mod Tool</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cắt ảnh hàng loạt → ZIP (Tối ưu phần cứng)</title>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root[data-theme="dark"]{
-    --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#252525;--surface3:#2f2f2f;
-    --border:#333;--text:#eee;--text-dim:#999;--accent:#7ec8ff;
-    --accent-bg:#1e3a4f;--ok:#7ed77e;--warn:#e8c45c;--danger:#ff6b6b;
-    --shadow:0 4px 12px rgba(0,0,0,.5);
-}
-:root[data-theme="light"]{
-    --bg:#f5f6f8;--surface:#fff;--surface2:#f0f2f5;--surface3:#e4e6ea;
-    --border:#d8dde3;--text:#1a1f26;--text-dim:#5f6875;--accent:#2196f3;
-    --accent-bg:#e3f2fd;--ok:#2e7d32;--warn:#f57c00;--danger:#c62828;
-    --shadow:0 4px 12px rgba(0,0,0,.08);
-}
-html,body{background:var(--bg);color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
-    line-height:1.5;-webkit-font-smoothing:antialiased;
-    transition:background .2s,color .2s}
-.app-header{position:sticky;top:0;z-index:100;background:var(--surface);
-    border-bottom:1px solid var(--border);padding:.75rem 1rem;
-    display:flex;justify-content:space-between;align-items:center;
-    backdrop-filter:blur(8px)}
-.brand{display:flex;align-items:baseline;gap:.5rem}
-.brand h1{font-size:1.1rem;color:var(--accent);font-weight:700}
-.version{font-size:.75rem;color:var(--text-dim);background:var(--surface2);
-    padding:.15rem .5rem;border-radius:4px}
-.btn-icon{background:var(--surface2);border:1px solid var(--border);color:var(--text);
-    border-radius:8px;width:36px;height:36px;display:inline-flex;
-    align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem}
-.btn-icon:hover{background:var(--surface3)}
-.app-main{max-width:1200px;margin:0 auto;padding:1rem;padding-bottom:100px}
-.drop-zone{display:block;border:2px dashed var(--border);border-radius:16px;
-    padding:2rem 1rem;text-align:center;cursor:pointer;
-    transition:all .2s;background:var(--surface);margin-bottom:1rem}
-.drop-zone:hover,.drop-zone.hover{border-color:var(--accent);background:var(--accent-bg)}
-.drop-zone input{display:none}
-.drop-icon{font-size:3rem;margin-bottom:.5rem}
-.drop-title{font-size:1rem;margin-bottom:.25rem}
-.drop-hint{color:var(--text-dim);font-size:.9rem}
-.progress{display:none;background:var(--surface);border:1px solid var(--border);
-    border-radius:12px;padding:1rem;margin-bottom:1rem}
-.progress.active{display:block}
-.progress-info{display:flex;justify-content:space-between;
-    margin-bottom:.5rem;font-size:.9rem;color:var(--text-dim)}
-.progress-track{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
-.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--ok));
-    width:0%;transition:width .3s ease}
-.file-info{background:var(--surface);border:1px solid var(--border);
-    border-radius:12px;padding:1rem;margin-bottom:1rem}
-.file-info.hidden{display:none}
-.file-info-main{display:flex;justify-content:space-between;align-items:baseline;
-    flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem}
-.file-name{font-size:1rem;font-weight:600}
-.file-version{color:var(--text-dim);font-size:.85rem}
-.counts{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:.5rem}
-.count-card{background:var(--surface2);border-radius:8px;padding:.5rem;text-align:center}
-.count-card b{display:block;font-size:1.1rem;color:var(--accent)}
-.count-card span{font-size:.75rem;color:var(--text-dim)}
-.tabs{display:flex;gap:.25rem;overflow-x:auto;padding-bottom:.5rem;
-    margin-bottom:1rem;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
-.tabs::-webkit-scrollbar{height:4px}
-.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.tab{flex:0 0 auto;background:var(--surface);border:1px solid var(--border);
-    color:var(--text-dim);padding:.5rem 1rem;border-radius:20px;
-    cursor:pointer;font-size:.9rem;white-space:nowrap;transition:all .15s}
-.tab:hover{background:var(--surface2)}
-.tab.active{background:var(--accent);color:white;border-color:var(--accent)}
-.panel{display:none;animation:fadeIn .2s}
-.panel.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.panel h2{font-size:1.1rem;margin-bottom:.75rem}
-.panel-header{display:flex;justify-content:space-between;align-items:center;
-    gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap}
-.toolbar{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
-.chunk-grid{display:flex;flex-wrap:wrap;gap:.4rem}
-.chunk-item{display:flex;gap:.4rem;align-items:baseline;background:var(--surface);
-    border:1px solid var(--border);padding:.35rem .6rem;border-radius:6px;font-size:.85rem}
-.chunk-item b{color:var(--accent)}
-.chunk-size{color:var(--text-dim);font-size:.8rem}
-.sprite-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.75rem}
-.sprite-card{position:relative;background:var(--surface);border:1px solid var(--border);
-    border-radius:8px;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s}
-.sprite-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
-.sprite-card.selected{border-color:var(--accent);background:var(--accent-bg)}
-.sprite-card img{display:block;width:100%;height:100px;object-fit:contain;
-    background:repeating-conic-gradient(var(--surface2) 0 25%,var(--surface3) 0 50%) 50%/16px 16px;
-    padding:4px}
-.sprite-meta{display:flex;justify-content:space-between;padding:.35rem .5rem;
-    font-size:.72rem;color:var(--text-dim);gap:.3rem}
-.sprite-meta .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-    color:var(--text);font-weight:500;flex:1;min-width:0}
-.card-check{position:absolute;top:6px;right:6px;z-index:2;cursor:pointer;
-    background:var(--surface);border-radius:4px;padding:2px;line-height:0}
-.card-check input{width:20px;height:20px;cursor:pointer;accent-color:var(--accent)}
-.audio-list{display:flex;flex-direction:column;gap:.5rem}
-.audio-item{position:relative;display:flex;align-items:center;gap:.75rem;
-    background:var(--surface);border:1px solid var(--border);
-    padding:.5rem .75rem;border-radius:8px;flex-wrap:wrap}
-.audio-item.selected{border-color:var(--accent);background:var(--accent-bg)}
-.audio-item .card-check{position:static;order:-1}
-.audio-info{flex:1;min-width:120px}
-.audio-info .name{font-weight:500;font-size:.9rem;word-break:break-all}
-.audio-info small{display:block;color:var(--text-dim);font-size:.78rem}
-.audio-item audio{height:32px;max-width:280px;flex:1}
-.btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);
-    padding:.5rem .9rem;border-radius:8px;cursor:pointer;font-size:.9rem;
-    white-space:nowrap;transition:background .15s}
-.btn:hover{background:var(--surface3)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn.primary{background:var(--accent);color:white;border-color:var(--accent)}
-.btn.primary:hover:not(:disabled){filter:brightness(1.1)}
-.search{background:var(--surface);border:1px solid var(--border);color:var(--text);
-    padding:.5rem .75rem;border-radius:8px;font-size:.9rem;min-width:200px;flex:1;max-width:320px}
-.search:focus{outline:2px solid var(--accent);outline-offset:1px}
-.string-list{background:var(--surface);border:1px solid var(--border);
-    border-radius:8px;max-height:500px;overflow-y:auto}
-.string-row{padding:.4rem .75rem;border-bottom:1px solid var(--border);
-    font-family:monospace;font-size:.85rem;word-break:break-all}
-.string-row:last-child{border-bottom:none}
-.string-row:hover{background:var(--surface2)}
-.more-notice{padding:.75rem;text-align:center;color:var(--text-dim);
-    font-size:.85rem;font-style:italic}
-.code-list{display:flex;flex-direction:column;gap:.75rem}
-.code-chunk{background:var(--surface);border:1px solid var(--border);
-    border-radius:8px;overflow:hidden}
-.code-header{background:var(--surface2);padding:.5rem .75rem;
-    font-size:.85rem;color:var(--accent);border-bottom:1px solid var(--border)}
-.code-chunk pre{padding:.75rem;font-family:monospace;font-size:.8rem;
-    max-height:300px;overflow:auto;white-space:pre-wrap;word-break:break-all}
-.log{background:var(--surface);border:1px solid var(--border);border-radius:8px;
-    padding:.75rem;font-family:monospace;font-size:.8rem;height:400px;overflow-y:auto}
-.log-info{color:var(--text-dim)}
-.log-ok{color:var(--ok)}
-.log-warn{color:var(--warn)}
-.log-err{color:var(--danger)}
-.empty{padding:2rem;text-align:center;color:var(--text-dim);font-style:italic}
-.action-bar{position:fixed;bottom:0;left:0;right:0;padding:.75rem;
-    background:var(--surface);border-top:1px solid var(--border);
-    display:flex;gap:.5rem;z-index:50;box-shadow:0 -4px 12px rgba(0,0,0,.2)}
-.fab{flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;
-    background:var(--surface2);border:1px solid var(--border);color:var(--text);
-    padding:.75rem;border-radius:12px;font-size:.9rem;cursor:pointer;
-    font-weight:500;transition:all .15s}
-.fab.primary{background:var(--accent);color:white;border-color:var(--accent)}
-.fab.primary:hover:not(:disabled){filter:brightness(1.1)}
-.fab:hover:not(:disabled){transform:translateY(-1px)}
-.fab:disabled{opacity:.4;cursor:not-allowed;transform:none}
-@media (min-width:768px){
-    .app-main{padding:1.5rem;padding-bottom:1.5rem}
-    .drop-zone{padding:3rem 2rem}
-    .drop-icon{font-size:4rem}
-    .drop-title{font-size:1.15rem}
-    .sprite-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
-    .sprite-card img{height:130px}
-    .action-bar{position:static;background:transparent;border:none;
-        box-shadow:none;padding:1rem 0;margin-top:1rem;max-width:480px}
-    .fab{padding:.6rem 1.2rem}
-    .tabs{gap:.5rem}
-    .tab{padding:.6rem 1.2rem;font-size:.95rem}
-}
-@media (max-width:767px){
-    .file-info-main{flex-direction:column;align-items:flex-start}
-    .panel-header{flex-direction:column;align-items:stretch}
-    .toolbar{justify-content:stretch}
-    .toolbar .btn{flex:1}
-    .search{max-width:none}
-    .audio-item audio{width:100%;max-width:none}
-    .fab-label{font-size:.8rem}
-    .sprite-card img{height:80px}
-}
+  /* ===================== BIẾN MÀU / THEME ===================== */
+  :root{
+    --bg:#0d1015;
+    --panel:#161a22;
+    --panel-2:#1e232e;
+    --border:#2b3240;
+    --text:#e7ebf3;
+    --muted:#95a0b3;
+    --accent:#4f8cff;
+    --accent-soft:#1e3358;
+    --ok:#22c55e;
+    --danger:#ef4444;
+    --radius:14px;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+
+  body{
+    margin:0;
+    padding:26px 16px 70px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(1100px 520px at 50% -12%, #1c2536 0%, transparent 62%),
+      var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    user-select: none;
+  }
+
+  .app{ max-width:1100px; margin:0 auto; }
+
+  /* ===================== HEADER ===================== */
+  header{ text-align:center; margin-bottom:22px; }
+  header h1{
+    margin:0 0 8px;
+    font-size:clamp(20px, 3.4vw, 28px);
+    letter-spacing:-.4px;
+  }
+  header .sub{
+    margin:0;
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.5;
+  }
+
+  /* ===================== PANEL ===================== */
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:16px;
+  }
+
+  /* ===================== DROPZONE ===================== */
+  .dropzone{
+    border:2px dashed var(--border);
+    border-radius:var(--radius);
+    background:linear-gradient(180deg, #141821, #11151c);
+    padding:32px 18px;
+    text-align:center;
+    transition:border-color .18s, background .18s, transform .18s;
+    margin-bottom:16px;
+    cursor:pointer;
+  }
+  .dropzone:hover{ border-color:#3d4c66; }
+  .dropzone.dragover{
+    border-color:var(--accent);
+    background:linear-gradient(180deg, #16213a, #11151c);
+    transform:scale(1.008);
+  }
+  .dz-icon{ font-size:34px; line-height:1; margin-bottom:10px; }
+  .dz-title{ font-size:16px; font-weight:600; margin-bottom:6px; transition: color 0.2s; }
+  .dz-title.loading{ color:var(--accent); }
+  .dz-sub{ color:var(--muted); font-size:13px; margin-bottom:12px; }
+
+  /* ===================== NÚT ===================== */
+  .btn{
+    appearance:none;
+    border:1px solid var(--border);
+    background:var(--panel-2);
+    color:var(--text);
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    padding:10px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:background .16s, border-color .16s, transform .08s, opacity .16s;
+    line-height:1.2;
+  }
+  .btn:hover{ background:#252b38; border-color:#3a4356; }
+  .btn:active{ transform:translateY(1px); }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+
+  .btn-primary{
+    background:linear-gradient(180deg, #5a95ff, #3d7bf0);
+    border-color:#3d7bf0;
+    color:#fff;
+    box-shadow:0 6px 18px -8px #3d7bf0;
+  }
+  .btn-primary:hover{ background:linear-gradient(180deg, #6ba0ff, #4a86f5); border-color:#4a86f5; }
+
+  .btn-lg{ padding:13px 26px; font-size:15px; border-radius:12px; }
+
+  .btn-ghost{
+    background:transparent;
+    border-color:transparent;
+    color:var(--muted);
+    font-weight:500;
+    padding:6px 10px;
+    font-size:13px;
+  }
+  .btn-ghost:hover{ color:var(--accent); background:rgba(79,140,255,.12); border-color:transparent; }
+  .btn-ghost.danger:hover{ color:var(--danger); background:rgba(239,68,68,.1); }
+  .btn-ghost:disabled{ opacity:.35; }
+
+  /* ===================== FORM ===================== */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+    gap:14px;
+  }
+  .field{ display:flex; flex-direction:column; gap:7px; }
+  .field > span{
+    font-size:12.5px;
+    color:var(--muted);
+    font-weight:600;
+    letter-spacing:.2px;
+    text-transform:uppercase;
+  }
+  .field > span b{ color:var(--accent); font-size:13px; }
+
+  .field input[type="number"],
+  .field select{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:9px;
+    padding:10px 12px;
+    font-family:inherit;
+    font-size:14px;
+    outline:none;
+    transition:border-color .16s, box-shadow .16s, opacity .16s;
+  }
+  .field input[type="number"]:focus,
+  .field select:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(79,140,255,.16);
+  }
+  .field select{ cursor:pointer; }
+  .field input:disabled,
+  .field select:disabled{ opacity:.5; cursor:not-allowed; }
+
+  input[type="range"]{
+    -webkit-appearance:none;
+    appearance:none;
+    width:100%;
+    height:6px;
+    border-radius:99px;
+    background:linear-gradient(90deg, var(--accent), #7aa9ff);
+    outline:none;
+    cursor:pointer;
+    margin:8px 0 2px;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    appearance:none;
+    width:18px; height:18px;
+    border-radius:50%;
+    background:#fff;
+    border:3px solid var(--accent);
+    cursor:pointer;
+    box-shadow:0 2px 6px rgba(0,0,0,.45);
+  }
+  .field.disabled{ opacity:.42; pointer-events:none; }
+
+  /* Checkbox giữ tỉ lệ */
+  .checkbox-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px dashed var(--border);
+    cursor:pointer;
+  }
+  .checkbox-row input[type="checkbox"]{
+    width:18px; height:18px;
+    accent-color:var(--accent);
+    cursor:pointer;
+    flex:0 0 auto;
+  }
+  .checkbox-row label{
+    font-size:13.5px;
+    color:var(--text);
+    cursor:pointer;
+    user-select:none;
+  }
+  .checkbox-row .note{ font-size:12px; color:var(--muted); }
+
+  /* ===================== PREVIEW ===================== */
+  .preview-panel{ padding:16px; }
+  .preview-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+  .preview-head h2{
+    margin:0 0 4px;
+    font-size:14.5px;
+    font-weight:700;
+  }
+  .preview-head h2 span{ color:var(--accent); }
+  .preview-hint{
+    margin:0;
+    font-size:12.5px;
+    color:var(--muted);
+    line-height:1.4;
+  }
+  .preview-actions{ display:flex; gap:6px; flex-wrap:wrap; }
+
+  .preview-body{
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  .preview-source{
+    flex:1 1 400px;
+    min-width:0;
+    background:#0a0d12;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:280px;
+    position:relative;
+    overflow:hidden;
+  }
+  #previewSource{
+    display:block;
+    max-width:100%;
+    max-height:520px;
+    border-radius:6px;
+    cursor:crosshair;
+    user-select:none;
+    -webkit-user-select:none;
+    touch-action:none;
+    box-shadow:0 6px 20px -8px rgba(0,0,0,.7);
+  }
+  #previewSource.no-crop{ cursor:default; }
+
+  .preview-result{
+    flex:0 0 auto;
+    width:260px;
+    max-width:100%;
+  }
+  .preview-result-label{
+    font-size:11.5px;
+    color:var(--muted);
+    font-weight:700;
+    text-transform:uppercase;
+    margin-bottom:8px;
+    letter-spacing:.4px;
+  }
+  .preview-result-wrap{
+    background:#0a0d12;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:120px;
+  }
+  #previewResult{
+    display:block;
+    max-width:100%;
+    max-height:260px;
+    border-radius:4px;
+    box-shadow:0 4px 14px -6px rgba(0,0,0,.7);
+  }
+
+  .preview-empty{
+    color:var(--muted);
+    font-size:13px;
+    text-align:center;
+    line-height:1.7;
+    padding:20px;
+  }
+  .preview-empty .big{ font-size:30px; display:block; margin-bottom:8px; }
+  .hidden{ display:none !important; }
+
+  /* ===================== DANH SÁCH ẢNH ===================== */
+  .list-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .list-head h2{
+    margin:0;
+    font-size:14.5px;
+    font-weight:700;
+    letter-spacing:.2px;
+  }
+  .list-head h2 span{ color:var(--accent); }
+
+  .list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    max-height:420px;
+    overflow-y:auto;
+    padding-right:4px;
+  }
+  .list::-webkit-scrollbar{ width:8px; }
+  .list::-webkit-scrollbar-thumb{ background:#2e3644; border-radius:99px; }
+  .list::-webkit-scrollbar-track{ background:transparent; }
+
+  .item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:11px;
+    padding:8px 10px;
+    cursor:pointer;
+    transition:border-color .15s, background .15s, box-shadow .15s;
+    animation:fadeIn .22s ease;
+  }
+  .item:hover{ border-color:#3a4356; }
+  .item.active{
+    border-color:var(--accent);
+    background:linear-gradient(180deg, #1b2436, #1e232e);
+    box-shadow:0 0 0 1px var(--accent) inset;
+  }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:none;} }
+
+  .item .thumb{
+    width:54px; height:54px;
+    border-radius:8px;
+    object-fit:cover;
+    background:#0a0d12;
+    flex:0 0 auto;
+    display:block;
+  }
+  .item .thumb.placeholder{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    color:var(--danger);
+    background:rgba(239,68,68,.1);
+    border:1px solid rgba(239,68,68,.28);
+  }
+
+  .item .meta{ flex:1 1 auto; min-width:0; }
+  .item .name{
+    font-size:13.5px;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    margin-bottom:3px;
+  }
+  .item .dims{
+    font-size:12px;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .item .dims.err{ color:var(--danger); font-weight:600; }
+  .badge{
+    font-size:10.5px;
+    font-weight:700;
+    padding:1px 7px;
+    border-radius:99px;
+    background:rgba(79,140,255,.18);
+    color:#8eb6ff;
+    border:1px solid rgba(79,140,255,.35);
+    letter-spacing:.3px;
+    text-transform:uppercase;
+  }
+
+  .item .x{
+    flex:0 0 auto;
+    width:30px; height:30px;
+    border-radius:8px;
+    border:1px solid transparent;
+    background:transparent;
+    color:var(--muted);
+    font-size:15px;
+    cursor:pointer;
+    transition:all .15s;
+    line-height:1;
+  }
+  .item .x:hover{ background:rgba(239,68,68,.14); color:var(--danger); }
+
+  .empty{
+    text-align:center;
+    color:var(--muted);
+    font-size:13.5px;
+    padding:22px 10px;
+  }
+
+  /* ===================== ACTION BAR ===================== */
+  .actions{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+    position:sticky;
+    bottom:14px;
+    box-shadow:0 -8px 30px -12px rgba(0,0,0,.9);
+    z-index:10;
+  }
+
+  .progress-wrap{ flex:1 1 240px; min-width:200px; }
+  .progress{
+    height:10px;
+    border-radius:99px;
+    background:#0d1118;
+    border:1px solid var(--border);
+    overflow:hidden;
+  }
+  .progress .bar{
+    height:100%;
+    width:0%;
+    border-radius:99px;
+    background:linear-gradient(90deg, #3d7bf0, #6ba0ff);
+    transition:width .2s ease;
+    box-shadow:0 0 12px -2px #4f8cff;
+  }
+  .progress-text{
+    margin-top:8px;
+    font-size:12.5px;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+  }
+
+  .msg{
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:11px;
+    font-size:13.5px;
+    line-height:1.55;
+    white-space:pre-wrap;
+    word-break:break-word;
+    display:none;
+  }
+  .msg.show{ display:block; }
+  .msg.error{
+    background:rgba(239,68,68,.1);
+    border:1px solid rgba(239,68,68,.32);
+    color:#ffb4b4;
+  }
+  .msg.ok{
+    background:rgba(34,197,94,.1);
+    border:1px solid rgba(34,197,94,.32);
+    color:#9df0bb;
+  }
+
+  footer{
+    text-align:center;
+    font-size:12px;
+    color:#5f6a7d;
+    margin-top:26px;
+    line-height:1.6;
+  }
+
+  @media (max-width:520px){
+    .actions{ position:static; }
+    .btn-lg{ width:100%; }
+    .item .thumb{ width:46px; height:46px; }
+    .preview-result{ width:100%; }
+    .preview-result-wrap{ min-height:100px; }
+  }
 </style>
 </head>
 <body>
+<div class="app">
 
-<header class="app-header">
-    <div class="brand">
-        <h1>UTMT Web</h1>
-        <span class="version">v3.0</span>
+  <!-- ===================== TIÊU ĐỀ ===================== -->
+  <header>
+    <h1>🖼️ Cắt ảnh hàng loạt → ZIP</h1>
+    <p class="sub">
+      Kéo thả ảnh → kéo thả các góc/cạnh của khung cắt → tải về 1 file ZIP.<br>
+      100% xử lý ngay trên máy bạn, không upload lên bất kỳ server nào.
+    </p>
+  </header>
+
+  <!-- ===================== VÙNG KÉO THẢ ===================== -->
+  <div class="dropzone" id="dropzone">
+    <div class="dz-icon">📁</div>
+    <div class="dz-title" id="dzTitle">Kéo &amp; thả ảnh vào đây</div>
+    <div class="dz-sub">hoặc</div>
+    <button class="btn btn-primary" id="btnPick" type="button">Chọn ảnh từ máy</button>
+    <input type="file" id="fileInput" accept="image/*" multiple hidden>
+  </div>
+
+  <!-- ===================== CÀI ĐẶT ===================== -->
+  <div class="panel">
+    <div class="grid">
+      <label class="field">
+        <span>Chiều rộng đích (px)</span>
+        <input type="number" id="inW" value="1080" min="1" max="10000" step="1">
+      </label>
+
+      <label class="field">
+        <span>Chiều cao đích (px)</span>
+        <input type="number" id="inH" value="1080" min="1" max="10000" step="1">
+      </label>
+
+      <label class="field">
+        <span>Chế độ cắt</span>
+        <select id="inMode">
+          <option value="center" selected>Center crop (cắt giữa)</option>
+          <option value="smart">Smart crop (ưu tiên chi tiết)</option>
+          <option value="custom">Custom (Tự do kéo thả)</option>
+          <option value="fit">Fit (thêm viền trắng)</option>
+          <option value="stretch">Stretch (kéo giãn)</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Định dạng xuất</span>
+        <select id="inFormat">
+          <option value="jpg" selected>JPG</option>
+          <option value="png">PNG</option>
+          <option value="webp">WEBP</option>
+        </select>
+      </label>
+
+      <label class="field" id="qualityField">
+        <span>Chất lượng JPG/WEBP: <b id="qVal">90</b></span>
+        <input type="range" id="inQuality" min="50" max="100" value="90">
+      </label>
     </div>
-    <button id="themeToggle" class="btn-icon" title="Đổi giao diện" type="button">🌓</button>
-</header>
 
-<main class="app-main">
-    <!-- ✅ FIX BUG 1: dùng <label for> để click luôn hoạt động -->
-    <label id="dropZone" class="drop-zone" for="fileInput">
-        <input type="file" id="fileInput" accept=".win,.droid">
-        <span class="drop-content">
-            <span class="drop-icon">📁</span>
-            <span class="drop-title">Kéo thả <b>data.win</b> hoặc <b>game.droid</b></span>
-            <span class="drop-hint">Hoặc bấm để chọn file</span>
-        </span>
-    </label>
-
-    <div id="progress" class="progress">
-        <div class="progress-info"><span id="progressText">Đang xử lý…</span></div>
-        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+    <!-- Checkbox giữ tỉ lệ -->
+    <div class="checkbox-row">
+      <input type="checkbox" id="inKeepAspect" checked>
+      <label for="inKeepAspect">
+        Giữ tỉ lệ vùng cắt (không ép vuông)
+        <span class="note">— Khung chữ nhật sẽ xuất ra chữ nhật, vừa với kích thước tối đa ở trên.</span>
+      </label>
     </div>
+  </div>
 
-    <section id="fileInfo" class="file-info hidden">
-        <div class="file-info-main">
-            <div class="file-name" id="fileName"></div>
-            <div class="file-version" id="fileVersion"></div>
+  <!-- ===================== PREVIEW ===================== -->
+  <div class="panel preview-panel" id="previewPanel">
+    <div class="preview-head">
+      <div>
+        <h2>Preview: <span id="previewName">—</span></h2>
+        <p class="preview-hint" id="previewHint">
+          Chọn ảnh trong danh sách. Kéo góc/cạnh để thay đổi vùng cắt.
+        </p>
+      </div>
+      <div class="preview-actions">
+        <button class="btn btn-ghost" id="btnApplyAll" type="button" disabled title="Sao chép vùng cắt của ảnh đang xem cho tất cả ảnh khác">📋 Áp dụng cho tất cả</button>
+        <button class="btn btn-ghost danger" id="btnResetPos" type="button" disabled title="Đưa khung cắt về vị trí mặc định">↺ Đặt lại vùng cắt</button>
+      </div>
+    </div>
+    <div class="preview-body">
+      <div class="preview-source">
+        <canvas id="previewSource" class="hidden"></canvas>
+        <div class="preview-empty" id="previewEmpty">
+          <span class="big">🖼️</span>
+          Chưa có ảnh nào được chọn.<br>Hãy thêm ảnh để xem trước.
         </div>
-        <div id="counts" class="counts"></div>
-    </section>
-
-    <nav class="tabs" role="tablist">
-        <button type="button" data-tab="overview" class="tab active">📊 Tổng quan</button>
-        <button type="button" data-tab="sprites" class="tab">🖼️ Sprites</button>
-        <button type="button" data-tab="audio" class="tab">🎵 Audio</button>
-        <button type="button" data-tab="strings" class="tab">📝 Strings</button>
-        <button type="button" data-tab="code" class="tab">💻 Code</button>
-        <button type="button" data-tab="log" class="tab">📋 Log</button>
-    </nav>
-
-    <div class="panels">
-        <section data-panel="overview" class="panel active">
-            <h2>Chunks trong file</h2>
-            <div id="chunkList" class="chunk-grid"></div>
-        </section>
-
-        <section data-panel="sprites" class="panel">
-            <div class="panel-header">
-                <h2>Sprites (PNG)</h2>
-                <div class="toolbar">
-                    <button type="button" id="btnSelectAllSprites" class="btn">☑ Chọn hết</button>
-                    <button type="button" id="btnClearSprites" class="btn">✖ Bỏ chọn</button>
-                    <button type="button" id="btnZipSelectedSprites" class="btn primary" disabled>
-                        ⬇ Tải đã chọn (<span id="selSpritesCount">0</span>)
-                    </button>
-                    <button type="button" id="btnZipSprites" class="btn">🗜 ZIP tất cả</button>
-                </div>
-            </div>
-            <div id="spriteGrid" class="sprite-grid"></div>
-        </section>
-
-        <section data-panel="audio" class="panel">
-            <div class="panel-header">
-                <h2>Audio</h2>
-                <div class="toolbar">
-                    <button type="button" id="btnSelectAllAudios" class="btn">☑ Chọn hết</button>
-                    <button type="button" id="btnClearAudios" class="btn">✖ Bỏ chọn</button>
-                    <button type="button" id="btnZipSelectedAudios" class="btn primary" disabled>
-                        ⬇ Tải đã chọn (<span id="selAudiosCount">0</span>)
-                    </button>
-                    <button type="button" id="btnZipAudio" class="btn">🗜 ZIP tất cả</button>
-                </div>
-            </div>
-            <div id="audioList" class="audio-list"></div>
-        </section>
-
-        <section data-panel="strings" class="panel">
-            <div class="panel-header">
-                <h2>Strings</h2>
-                <input type="search" id="search" class="search" placeholder="Tìm string…">
-            </div>
-            <div id="stringList" class="string-list"></div>
-        </section>
-
-        <section data-panel="code" class="panel">
-            <h2>Code chunks</h2>
-            <div id="codeList" class="code-list"></div>
-        </section>
-
-        <section data-panel="log" class="panel">
-            <h2>Log</h2>
-            <div id="log" class="log"></div>
-        </section>
+      </div>
+      <div class="preview-result">
+        <div class="preview-result-label">Kết quả sau khi cắt</div>
+        <div class="preview-result-wrap">
+          <canvas id="previewResult" class="hidden"></canvas>
+          <span class="preview-empty" id="previewResultEmpty" style="padding:8px;">—</span>
+        </div>
+      </div>
     </div>
-</main>
+  </div>
 
-<div class="action-bar">
-    <button type="button" id="btnZipAll" class="fab primary" disabled>
-        <span>🗜</span><span class="fab-label">ZIP tất cả</span>
-    </button>
-    <button type="button" id="btnExportJSON" class="fab" disabled>
-        <span>💾</span><span class="fab-label">Metadata JSON</span>
-    </button>
+  <!-- ===================== DANH SÁCH ẢNH ===================== -->
+  <div class="panel">
+    <div class="list-head">
+      <h2>Danh sách ảnh (<span id="count">0</span>)</h2>
+      <button class="btn btn-ghost danger" id="btnClear" type="button">🗑 Xóa tất cả</button>
+    </div>
+    <div class="list" id="list">
+      <div class="empty" id="empty">Chưa có ảnh nào. Hãy kéo thả hoặc chọn ảnh ở trên.</div>
+    </div>
+  </div>
+
+  <!-- ===================== ACTION BAR ===================== -->
+  <div class="actions">
+    <div class="progress-wrap">
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="progress-text" id="progressText">Sẵn sàng</div>
+    </div>
+    <button class="btn btn-primary btn-lg" id="btnRun" type="button">✂️ Cắt &amp; Tải ZIP</button>
+  </div>
+
+  <div class="msg" id="msg"></div>
+
+  <footer>
+    Ảnh của bạn không rời khỏi thiết bị. Tool chạy hoàn toàn bằng HTML5 Canvas + JSZip.
+  </footer>
+
 </div>
 
-<!-- ✅ FIX BUG 9: defer để DOM chắc chắn ready -->
-<script src="UTMTweb.js" defer></script>
+<!-- ===================== THƯ VIỆN ZIP (CDN) ===================== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+/* =========================================================================
+   CẮT ẢNH HÀNG LOẠT — VANILLA JS (SIÊU TỐC)
+   ========================================================================= */
+
+const MIME = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+const PREVIEW_MAX = 600;
+const RESULT_MAX  = 280;
+const MIN_CROP    = 20;
+
+// Lấy thông số phần cứng
+const HW_CORES = navigator.hardwareConcurrency || 4;
+
+// Tối ưu: Đọc file song song tối đa 16, cắt ảnh song song tối đa 12-16 tuỳ máy
+const ADD_POOL_SIZE  = Math.max(8, Math.min(HW_CORES * 2, 20)); 
+const CROP_POOL_SIZE = Math.max(4, Math.min(HW_CORES, 16));     
+
+const $  = (sel) => document.querySelector(sel);
+const tick = () => new Promise(r => setTimeout(r, 0));
+const nextFrame = () => new Promise(r => requestAnimationFrame(() => r()));
+
+/* ------------------------- STATE ------------------------- */
+const state = {
+  items: [],
+  nextId: 1,
+  activeId: null,
+  busy: false,
+  loadingFiles: false,
+};
+
+/* ------------------------- DOM ------------------------- */
+const dom = {
+  dropzone:   $('#dropzone'),
+  dzTitle:    $('#dzTitle'),
+  fileInput:  $('#fileInput'),
+  btnPick:    $('#btnPick'),
+  btnClear:   $('#btnClear'),
+  btnRun:     $('#btnRun'),
+  inW:        $('#inW'),
+  inH:        $('#inH'),
+  inMode:     $('#inMode'),
+  inFormat:   $('#inFormat'),
+  inQuality:  $('#inQuality'),
+  inKeepAspect: $('#inKeepAspect'),
+  qVal:       $('#qVal'),
+  qualityField: $('#qualityField'),
+  list:       $('#list'),
+  empty:      $('#empty'),
+  count:      $('#count'),
+  bar:        $('#bar'),
+  progressText: $('#progressText'),
+  msg:        $('#msg'),
+  previewName:       $('#previewName'),
+  previewHint:       $('#previewHint'),
+  previewSource:     $('#previewSource'),
+  previewResult:     $('#previewResult'),
+  previewEmpty:      $('#previewEmpty'),
+  previewResultEmpty:$('#previewResultEmpty'),
+  btnApplyAll:       $('#btnApplyAll'),
+  btnResetPos:       $('#btnResetPos'),
+};
+
+/* ------------------------- THÔNG BÁO ------------------------- */
+function showMsg(text, type = 'error') {
+  dom.msg.textContent = text;
+  dom.msg.className = 'msg show ' + type;
+}
+function hideMsg() {
+  dom.msg.className = 'msg';
+  dom.msg.textContent = '';
+}
+function setProgress(pct, text) {
+  dom.bar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+  if (text !== undefined) dom.progressText.textContent = text;
+}
+
+/* ------------------------- HÀM CHẠY SONG SONG (POOL) ------------------------- */
+async function runInPool(tasks, limit, onProgress) {
+  let nextIndex = 0;
+  let completed = 0;
+  const results = new Array(tasks.length);
+
+  return new Promise((resolve) => {
+    if (tasks.length === 0) { resolve(results); return; }
+
+    function launch() {
+      if (nextIndex >= tasks.length) return;
+      const index = nextIndex++;
+      Promise.resolve()
+        .then(() => tasks[index]())
+        .then(res => { results[index] = res; })
+        .catch(err => { results[index] = { ok: false, error: err.message || 'Lỗi' }; })
+        .finally(() => {
+          completed++;
+          if (onProgress) onProgress(completed, tasks.length);
+          if (completed === tasks.length) {
+            resolve(results);
+          } else {
+            launch();
+          }
+        });
+    }
+
+    for (let i = 0; i < Math.min(limit, tasks.length); i++) {
+      launch();
+    }
+  });
+}
+
+/* ------------------------- ĐỌC FILE ------------------------- */
+function loadImageInfo(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      if (!img.naturalWidth || !img.naturalHeight) {
+        URL.revokeObjectURL(url);
+        reject(new Error('Ảnh không có kích thước hợp lệ'));
+        return;
+      }
+      resolve({ url, width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('File không phải ảnh hợp lệ'));
+    };
+    img.src = url;
+  });
+}
+
+async function ensureImageLoaded(item) {
+  if (item._imgEl && item._imgEl.complete && item._imgEl.naturalWidth) {
+    return item._imgEl;
+  }
+  return new Promise((resolve, reject) => {
+    if (item._imgEl) {
+      if (item._imgEl.complete) {
+        return item._imgEl.naturalWidth ? resolve(item._imgEl) : reject(new Error('Lỗi tải ảnh'));
+      }
+      item._imgEl.onload = () => resolve(item._imgEl);
+      item._imgEl.onerror = () => reject(new Error('Lỗi tải ảnh'));
+      return;
+    }
+    const img = new Image();
+    img.onload = () => { item._imgEl = img; resolve(img); };
+    img.onerror = () => reject(new Error('Lỗi tải ảnh'));
+    img.src = item.url;
+    item._imgEl = img;
+  });
+}
+
+/* ------------------------- THÊM ẢNH (SIÊU TỐC) ------------------------- */
+async function addFiles(fileList) {
+  const files = Array.from(fileList || []);
+  if (!files.length || state.loadingFiles) return;
+
+  hideMsg();
+  dom.empty.style.display = 'none';
+  state.loadingFiles = true;
+  
+  // Hiển thị trạng thái đang load
+  dom.dzTitle.textContent = `Đang đọc ảnh... (0/${files.length})`;
+  dom.dzTitle.classList.add('loading');
+  dom.dropzone.style.pointerEvents = 'none';
+  dom.btnPick.disabled = true;
+
+  // Tạo tasks đọc song song
+  const tasks = files.map(file => async () => {
+    try {
+      const info = await loadImageInfo(file);
+      return { file, info, error: null };
+    } catch (err) {
+      return { file, info: null, error: err.message || 'Lỗi' };
+    }
+  });
+
+  // Thực thi pool
+  const results = await runInPool(tasks, ADD_POOL_SIZE, (done, t) => {
+    dom.dzTitle.textContent = `Đang đọc ảnh... (${done}/${t})`;
+  });
+
+  // Tạo DOM 1 lần duy nhất bằng DocumentFragment
+  const fragment = document.createDocumentFragment();
+  
+  for (const res of results) {
+    let item;
+    if (res.info) {
+      item = {
+        id: state.nextId++,
+        file: res.file,
+        name: res.file.name,
+        width: res.info.width,
+        height: res.info.height,
+        url: res.info.url,
+        _imgEl: null,
+        cropRect: null,
+        error: null,
+        el: null,
+      };
+    } else {
+      item = {
+        id: state.nextId++,
+        file: res.file,
+        name: res.file.name || '(không tên)',
+        width: 0, height: 0, url: null, _imgEl: null, cropRect: null,
+        error: res.error,
+        el: null,
+      };
+    }
+    state.items.push(item);
+    
+    // Tạo element
+    const el = createItemElement(item);
+    fragment.appendChild(el);
+    item.el = el;
+    
+    if (state.activeId === null && !item.error) {
+      state.activeId = item.id;
+    }
+  }
+  
+  dom.list.appendChild(fragment);
+
+  // Khôi phục UI
+  state.loadingFiles = false;
+  dom.dzTitle.textContent = 'Kéo & thả ảnh vào đây';
+  dom.dzTitle.classList.remove('loading');
+  dom.dropzone.style.pointerEvents = '';
+  dom.btnPick.disabled = false;
+
+  updateCount();
+  updateActiveHighlight();
+  updatePreviewButtons();
+  renderPreview();
+}
+
+/* ------------------------- RENDER LIST ITEM ------------------------- */
+function createItemElement(item) {
+  const el = document.createElement('div');
+  el.className = 'item';
+  el.dataset.id = item.id;
+
+  if (item.url) {
+    const img = document.createElement('img');
+    img.className = 'thumb'; img.src = item.url; img.alt = item.name; img.loading = 'lazy';
+    img.decoding = 'async'; // Tăng tốc hiển thị ảnh
+    el.appendChild(img);
+  } else {
+    const ph = document.createElement('div');
+    ph.className = 'thumb placeholder'; ph.textContent = '⚠';
+    el.appendChild(ph);
+  }
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  const nameEl = document.createElement('div');
+  nameEl.className = 'name'; nameEl.textContent = item.name; nameEl.title = item.name;
+  const dimsEl = document.createElement('div');
+  dimsEl.className = 'dims' + (item.error ? ' err' : '');
+  if (item.error) {
+    dimsEl.textContent = item.error;
+  } else {
+    dimsEl.innerHTML = `<span>${item.width} × ${item.height} px</span><span class="badge">Sẵn sàng</span>`;
+  }
+  meta.appendChild(nameEl); meta.appendChild(dimsEl); el.appendChild(meta);
+
+  const btnX = document.createElement('button');
+  btnX.className = 'x'; btnX.type = 'button'; btnX.title = 'Xóa ảnh này'; btnX.textContent = '✕';
+  btnX.addEventListener('click', (e) => { e.stopPropagation(); removeItem(item.id); });
+  el.appendChild(btnX);
+
+  el.addEventListener('click', () => selectItem(item.id));
+  if (item.id === state.activeId) el.classList.add('active');
+  
+  return el;
+}
+
+/* ------------------------- CHỌN / XÓA ------------------------- */
+function selectItem(id) {
+  if (state.activeId === id) return;
+  state.activeId = id;
+  updateActiveHighlight();
+  updatePreviewButtons();
+  renderPreview();
+}
+
+function updateActiveHighlight() {
+  state.items.forEach(it => {
+    if (it.el) it.el.classList.toggle('active', it.id === state.activeId);
+  });
+}
+
+function updatePreviewButtons() {
+  const item = getActiveItem();
+  const hasImage = !!item && !item.error;
+  const isManual = hasImage && item.cropRect !== null;
+  dom.btnApplyAll.disabled = !isManual || state.busy;
+  dom.btnResetPos.disabled = !isManual || state.busy;
+}
+
+function removeItem(id) {
+  const idx = state.items.findIndex(i => i.id === id);
+  if (idx === -1) return;
+  const item = state.items[idx];
+
+  if (item.url) URL.revokeObjectURL(item.url);
+  if (item._imgEl) { item._imgEl.src = ''; item._imgEl = null; }
+  if (item.el && item.el.parentNode) item.el.remove();
+
+  state.items.splice(idx, 1);
+  if (state.activeId === id) {
+    const next = state.items.find(i => !i.error);
+    state.activeId = next ? next.id : null;
+  }
+  updateCount();
+  updateActiveHighlight();
+  updatePreviewButtons();
+  renderPreview();
+}
+
+function clearAll() {
+  if (state.busy || state.loadingFiles) return;
+  state.items.forEach(it => {
+    if (it.url) URL.revokeObjectURL(it.url);
+    if (it._imgEl) { it._imgEl.src = ''; it._imgEl = null; }
+  });
+  state.items = []; state.activeId = null;
+  dom.list.innerHTML = ''; dom.list.appendChild(dom.empty); dom.empty.style.display = '';
+  updateCount(); updatePreviewButtons(); renderPreview();
+  setProgress(0, 'Sẵn sàng'); hideMsg();
+}
+
+function updateCount() {
+  dom.count.textContent = state.items.length;
+  dom.empty.style.display = state.items.length ? 'none' : '';
+}
+function getActiveItem() { return state.items.find(i => i.id === state.activeId) || null; }
+
+/* =========================================================================
+   TÍNH VÙNG CẮT MẶC ĐỊNH & SMART CROP
+   ========================================================================= */
+
+function getDefaultCrop(imgW, imgH, targetW, targetH, mode, img) {
+  if (mode === 'stretch' || mode === 'fit') {
+    return { x: 0, y: 0, w: 1, h: 1 };
+  }
+
+  const targetRatio = targetW / targetH;
+  const srcRatio = imgW / imgH;
+  let wRatio, hRatio;
+
+  if (srcRatio > targetRatio) {
+    hRatio = 1;
+    wRatio = targetRatio / srcRatio;
+  } else {
+    wRatio = 1;
+    hRatio = srcRatio / targetRatio;
+  }
+
+  let x = (1 - wRatio) / 2;
+  let y = (1 - hRatio) / 2;
+
+  if (mode === 'smart' && img) {
+    const best = smartCropPosition(img, imgW, imgH, imgW * wRatio, imgH * hRatio);
+    x = Math.max(0, Math.min(1 - wRatio, best.x / imgW));
+    y = Math.max(0, Math.min(1 - hRatio, best.y / imgH));
+  }
+
+  return { x, y, w: wRatio, h: hRatio };
+}
+
+function smartCropPosition(img, sw, sh, cw, ch) {
+  const MAXDIM = 256;
+  const scale = Math.min(1, MAXDIM / Math.max(sw, sh));
+  const aw = Math.max(1, Math.round(sw * scale));
+  const ah = Math.max(1, Math.round(sh * scale));
+
+  const c = document.createElement('canvas');
+  c.width = aw; c.height = ah;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, aw, ah);
+
+  let data;
+  try { data = ctx.getImageData(0, 0, aw, ah).data; }
+  catch (e) { c.width = 0; c.height = 0; return { x: (sw - cw) / 2, y: (sh - ch) / 2 }; }
+  c.width = 0; c.height = 0;
+
+  const gray = new Float32Array(aw * ah);
+  for (let i = 0, p = 0; i < gray.length; i++, p += 4) {
+    gray[i] = 0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2];
+  }
+
+  const edge = new Float32Array(aw * ah);
+  for (let y = 0; y < ah; y++) {
+    const yUp = Math.max(0, y - 1) * aw, yDn = Math.min(ah - 1, y + 1) * aw;
+    for (let x = 0; x < aw; x++) {
+      const xL = Math.max(0, x - 1), xR = Math.min(aw - 1, x + 1);
+      const gx = gray[y * aw + xR] - gray[y * aw + xL];
+      const gy = gray[yDn + x] - gray[yUp + x];
+      edge[y * aw + x] = Math.sqrt(gx * gx + gy * gy);
+    }
+  }
+
+  const W = aw + 1, H = ah + 1;
+  const integ = new Float64Array(W * H);
+  for (let y = 1; y < H; y++) {
+    let rowSum = 0;
+    for (let x = 1; x < W; x++) {
+      rowSum += edge[(y - 1) * aw + (x - 1)];
+      integ[y * W + x] = integ[(y - 1) * W + x] + rowSum;
+    }
+  }
+  const rectSum = (x0, y0, x1, y1) => integ[y1 * W + x1] - integ[y0 * W + x1] - integ[y1 * W + x0] + integ[y0 * W + x0];
+
+  const ww = Math.max(1, Math.round(cw * scale)), wh = Math.max(1, Math.round(ch * scale));
+  const maxX = Math.max(0, aw - ww), maxY = Math.max(0, ah - wh);
+  const step = Math.max(1, Math.round(Math.min(aw, ah) / 48));
+
+  const xs = []; for (let x = 0; x <= maxX; x += step) xs.push(x); if (xs[xs.length - 1] !== maxX) xs.push(maxX);
+  const ys = []; for (let y = 0; y <= maxY; y += step) ys.push(y); if (ys[ys.length - 1] !== maxY) ys.push(maxY);
+
+  let bestScore = -1, bestX = 0, bestY = 0;
+  for (const y of ys) {
+    for (const x of xs) {
+      const s = rectSum(x, y, Math.min(x + ww, aw), Math.min(y + wh, ah));
+      if (s > bestScore) { bestScore = s; bestX = x; bestY = y; }
+    }
+  }
+
+  let sx = bestX / scale, sy = bestY / scale;
+  sx = Math.max(0, Math.min(sw - cw, sx));
+  sy = Math.max(0, Math.min(sh - ch, sy));
+  return { x: sx, y: sy };
+}
+
+function getItemCrop(item, s) {
+  if (s.mode === 'stretch' || s.mode === 'fit') {
+    return { x: 0, y: 0, w: 1, h: 1 };
+  }
+  if (item.cropRect) return item.cropRect;
+  return getDefaultCrop(item.width, item.height, s.targetW, s.targetH, s.mode, item._imgEl);
+}
+
+function calculateOutputSize(crop, imgW, imgH, s) {
+  if (s.mode === 'fit' || s.mode === 'stretch') {
+    return { outW: s.targetW, outH: s.targetH };
+  }
+  if (s.keepAspect) {
+    const realW = crop.w * imgW;
+    const realH = crop.h * imgH;
+    const ratio = realW / realH; 
+    const targetRatio = s.targetW / s.targetH;
+    
+    if (ratio > targetRatio) {
+      return { outW: s.targetW, outH: Math.max(1, Math.round(s.targetW / ratio)) };
+    } else {
+      return { outW: Math.max(1, Math.round(s.targetH * ratio)), outH: s.targetH };
+    }
+  }
+  return { outW: s.targetW, outH: s.targetH };
+}
+
+/* =========================================================================
+   PREVIEW
+   ========================================================================= */
+let previewRAF = null;
+function schedulePreview() {
+  if (previewRAF) return;
+  previewRAF = requestAnimationFrame(() => { previewRAF = null; renderPreview(); });
+}
+
+async function renderPreview() {
+  const item = getActiveItem();
+  if (!item || item.error || !item.url) { showPreviewEmpty(); return; }
+
+  try {
+    const img = await ensureImageLoaded(item);
+    if (state.activeId !== item.id) return;
+
+    dom.previewEmpty.classList.add('hidden');
+    dom.previewResultEmpty.classList.add('hidden');
+    dom.previewSource.classList.remove('hidden');
+    dom.previewResult.classList.remove('hidden');
+    dom.previewName.textContent = item.name;
+
+    drawPreviewFromImage(item, img);
+    updatePreviewHint(item);
+  } catch (err) { showPreviewEmpty(); }
+}
+
+function showPreviewEmpty() {
+  dom.previewSource.classList.add('hidden');
+  dom.previewResult.classList.add('hidden');
+  dom.previewEmpty.classList.remove('hidden');
+  dom.previewResultEmpty.classList.remove('hidden');
+  dom.previewName.textContent = '—';
+  dom.previewHint.textContent = 'Chọn ảnh trong danh sách. Kéo góc/cạnh để thay đổi vùng cắt.';
+  dom.previewSource.width = 0; dom.previewSource.height = 0;
+  dom.previewResult.width = 0; dom.previewResult.height = 0;
+}
+
+function updatePreviewHint(item) {
+  const s = readSettings();
+  if (s.mode === 'fit') dom.previewHint.textContent = 'Chế độ Fit: giữ nguyên tỉ lệ, thêm viền trắng.';
+  else if (s.mode === 'stretch') dom.previewHint.textContent = 'Chế độ Stretch: kéo giãn ảnh cho vừa khung.';
+  else if (item.cropRect) dom.previewHint.textContent = 'Vùng cắt tự do. Kéo góc/cạnh để thay đổi.';
+  else if (s.mode === 'smart') dom.previewHint.textContent = 'Vùng cắt được đặt tự động. Kéo góc/cạnh để tinh chỉnh.';
+  else dom.previewHint.textContent = 'Vùng cắt đang ở giữa. Kéo góc/cạnh để thay đổi.';
+}
+
+function drawPreviewFromImage(item, img) {
+  const s = readSettings();
+  const imgW = img.naturalWidth, imgH = img.naturalHeight;
+  if (!imgW || !imgH) return;
+
+  const canvas = dom.previewSource;
+  const scale = Math.min(PREVIEW_MAX / imgW, PREVIEW_MAX / imgH);
+  const cw = Math.max(1, Math.round(imgW * scale));
+  const ch = Math.max(1, Math.round(imgH * scale));
+  canvas.width = cw; canvas.height = ch;
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, cw, ch);
+  ctx.drawImage(img, 0, 0, cw, ch);
+
+  const crop = getItemCrop(item, s);
+  
+  if (!item.cropRect && s.mode !== 'fit' && s.mode !== 'stretch') {
+    item.cropRect = { ...crop };
+  }
+
+  if (s.mode === 'fit' || s.mode === 'stretch') {
+    canvas.classList.add('no-crop');
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(1, 1, cw - 2, ch - 2);
+  } else {
+    canvas.classList.remove('no-crop');
+    item._previewBox = {
+      x: crop.x * cw,
+      y: crop.y * ch,
+      w: crop.w * cw,
+      h: crop.h * ch
+    };
+    drawCropOverlay(ctx, canvas, item._previewBox);
+  }
+
+  drawResultPreview(item, img, s, crop);
+}
+
+function drawCropOverlay(ctx, canvas, box) {
+  const { x, y, w, h } = box;
+  const W = canvas.width, H = canvas.height;
+
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(0, 0, W, y);
+  ctx.fillRect(0, y + h, W, H - y - h);
+  ctx.fillRect(0, y, x, h);
+  ctx.fillRect(x + w, y, W - x - w, h);
+
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([]);
+  ctx.strokeRect(x, y, w, h);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 1;
+  for (let i = 1; i < 3; i++) {
+    ctx.beginPath(); ctx.moveTo(x + w * i / 3, y); ctx.lineTo(x + w * i / 3, y + h); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y + h * i / 3); ctx.lineTo(x + w, y + h * i / 3); ctx.stroke();
+  }
+
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 4;
+  const cs = Math.min(w, h, 20);
+  ctx.beginPath(); ctx.moveTo(x + cs, y); ctx.lineTo(x, y); ctx.lineTo(x, y + cs); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + w - cs, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + cs); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + cs, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x, y + h - cs); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + w - cs, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y + h - cs); ctx.stroke();
+
+  ctx.fillStyle = '#fff';
+  const hs = 6;
+  ctx.fillRect(x + w/2 - hs/2, y - hs/2, hs, hs);
+  ctx.fillRect(x + w/2 - hs/2, y + h - hs/2, hs, hs);
+  ctx.fillRect(x - hs/2, y + h/2 - hs/2, hs, hs);
+  ctx.fillRect(x + w - hs/2, y + h/2 - hs/2, hs, hs);
+}
+
+function drawResultPreview(item, img, s, crop) {
+  const imgW = img.naturalWidth, imgH = img.naturalHeight;
+  const { outW, outH } = calculateOutputSize(crop, imgW, imgH, s);
+  
+  const rCanvas = dom.previewResult;
+  const rs = Math.min(RESULT_MAX / outW, RESULT_MAX / outH, 1);
+  rCanvas.width  = Math.max(1, Math.round(outW * rs));
+  rCanvas.height = Math.max(1, Math.round(outH * rs));
+  const rctx = rCanvas.getContext('2d');
+  rctx.imageSmoothingEnabled = true;
+  rctx.imageSmoothingQuality = 'high';
+  rctx.clearRect(0, 0, rCanvas.width, rCanvas.height);
+
+  if (s.mode === 'stretch') {
+    rctx.drawImage(img, 0, 0, imgW, imgH, 0, 0, rCanvas.width, rCanvas.height);
+  } else if (s.mode === 'fit') {
+    rctx.fillStyle = '#ffffff';
+    rctx.fillRect(0, 0, rCanvas.width, rCanvas.height);
+    const k = Math.min(rCanvas.width / imgW, rCanvas.height / imgH);
+    const dw = imgW * k, dh = imgH * k;
+    rctx.drawImage(img, 0, 0, imgW, imgH, (rCanvas.width - dw) / 2, (rCanvas.height - dh) / 2, dw, dh);
+  } else if (crop) {
+    const sx = crop.x * imgW, sy = crop.y * imgH;
+    const cw = crop.w * imgW, ch = crop.h * imgH;
+    rctx.drawImage(img, sx, sy, cw, ch, 0, 0, rCanvas.width, rCanvas.height);
+  }
+}
+
+/* =========================================================================
+   KÉO THẢ / THAY ĐỔI KÍCH THƯỚC KHUNG CẮT
+   ========================================================================= */
+let dragState = null;
+
+function getMousePos(canvas, e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (canvas.width / rect.width),
+    y: (e.clientY - rect.top)  * (canvas.height / rect.height),
+  };
+}
+
+function getHitZone(pos, box) {
+  const { x, y, w, h } = box;
+  const hs = 15;
+  const p = pos;
+
+  const inLeft   = Math.abs(p.x - x) < hs;
+  const inRight  = Math.abs(p.x - (x + w)) < hs;
+  const inTop    = Math.abs(p.y - y) < hs;
+  const inBottom = Math.abs(p.y - (y + h)) < hs;
+
+  if (inLeft && inTop) return 'tl';
+  if (inRight && inTop) return 'tr';
+  if (inLeft && inBottom) return 'bl';
+  if (inRight && inBottom) return 'br';
+  if (inTop) return 't';
+  if (inBottom) return 'b';
+  if (inLeft) return 'l';
+  if (inRight) return 'r';
+
+  if (p.x > x && p.x < x + w && p.y > y && p.y < y + h) return 'move';
+  return null;
+}
+
+function onPointerDown(e) {
+  if (state.busy || state.loadingFiles) return;
+  const item = getActiveItem();
+  if (!item || item.error || !item._imgEl || !item._previewBox) return;
+  const s = readSettings();
+  if (s.mode === 'fit' || s.mode === 'stretch') return;
+
+  const canvas = dom.previewSource;
+  const pos = getMousePos(canvas, e);
+  const hit = getHitZone(pos, item._previewBox);
+
+  if (!hit) return;
+
+  e.preventDefault();
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+
+  if (hit !== 'move') {
+    if (s.mode !== 'custom') {
+      dom.inMode.value = 'custom';
+      updatePreviewHint(item);
+    }
+  }
+
+  dragState = {
+    type: hit,
+    startX: pos.x,
+    startY: pos.y,
+    startCrop: { ...item.cropRect || getItemCrop(item, s) },
+    canvasW: canvas.width,
+    canvasH: canvas.height,
+  };
+
+  canvas.style.cursor = hit === 'move' ? 'grabbing' : getCursorForZone(hit);
+}
+
+function getCursorForZone(zone) {
+  if (zone === 'tl' || zone === 'br') return 'nwse-resize';
+  if (zone === 'tr' || zone === 'bl') return 'nesw-resize';
+  if (zone === 't' || zone === 'b') return 'ns-resize';
+  if (zone === 'l' || zone === 'r') return 'ew-resize';
+  if (zone === 'move') return 'grab';
+  return 'crosshair';
+}
+
+function onPointerMove(e) {
+  const item = getActiveItem();
+  const canvas = dom.previewSource;
+
+  if (!item || !item._previewBox || !canvas.width) return;
+
+  const s = readSettings();
+  if (s.mode === 'fit' || s.mode === 'stretch') return;
+
+  const pos = getMousePos(canvas, e);
+
+  if (!dragState) {
+    const hit = getHitZone(pos, item._previewBox);
+    canvas.style.cursor = hit ? getCursorForZone(hit) : 'default';
+    return;
+  }
+
+  e.preventDefault();
+  const ds = dragState;
+  const dx = pos.x - ds.startX;
+  const dy = pos.y - ds.startY;
+
+  const dW = dx / ds.canvasW;
+  const dH = dy / ds.canvasH;
+
+  let newCrop = { ...ds.startCrop };
+  const minW = MIN_CROP / ds.canvasW;
+  const minH = MIN_CROP / ds.canvasH;
+
+  if (ds.type === 'move') {
+    newCrop.x = Math.max(0, Math.min(1 - newCrop.w, ds.startCrop.x + dW));
+    newCrop.y = Math.max(0, Math.min(1 - newCrop.h, ds.startCrop.y + dH));
+  } else {
+    if (ds.type.includes('l')) {
+      const newX = Math.max(0, Math.min(ds.startCrop.x + ds.startCrop.w - minW, ds.startCrop.x + dW));
+      newCrop.w = ds.startCrop.x + ds.startCrop.w - newX;
+      newCrop.x = newX;
+    }
+    if (ds.type.includes('r')) {
+      newCrop.w = Math.max(minW, Math.min(1 - ds.startCrop.x, ds.startCrop.w + dW));
+    }
+    if (ds.type.includes('t')) {
+      const newY = Math.max(0, Math.min(ds.startCrop.y + ds.startCrop.h - minH, ds.startCrop.y + dH));
+      newCrop.h = ds.startCrop.y + ds.startCrop.h - newY;
+      newCrop.y = newY;
+    }
+    if (ds.type.includes('b')) {
+      newCrop.h = Math.max(minH, Math.min(1 - ds.startCrop.y, ds.startCrop.h + dH));
+    }
+  }
+
+  item.cropRect = newCrop;
+  updatePreviewButtons();
+  updatePreviewHint(item);
+  schedulePreview();
+}
+
+function onPointerUp(e) {
+  if (!dragState) return;
+  dragState = null;
+  const canvas = dom.previewSource;
+  canvas.style.cursor = 'default';
+  try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+}
+
+/* =========================================================================
+   XỬ LÝ ẢNH ĐỂ XUẤT
+   ========================================================================= */
+async function decodeImage(file) {
+  if (typeof createImageBitmap === 'function') {
+    try { return await createImageBitmap(file); } catch (_) {}
+  }
+  return await new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Không đọc được file ảnh')); };
+    img.src = url;
+  });
+}
+
+function getSize(img) {
+  const isBitmap = (typeof ImageBitmap !== 'undefined') && (img instanceof ImageBitmap);
+  return isBitmap ? { w: img.width, h: img.height } : { w: img.naturalWidth, h: img.naturalHeight };
+}
+
+function canvasToBlob(canvas, mime, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Lỗi xuất ảnh')), mime, quality);
+  });
+}
+
+async function cropImage(item, s) {
+  let src;
+  let isBitmap = false;
+
+  if (item._imgEl && item._imgEl.complete && item._imgEl.naturalWidth) {
+    src = item._imgEl;
+  } else {
+    src = await decodeImage(item.file);
+    isBitmap = true;
+  }
+
+  const { w: sw, h: sh } = getSize(src);
+  if (!sw || !sh) throw new Error('Ảnh không hợp lệ');
+
+  const crop = getItemCrop(item, s);
+  const { outW, outH } = calculateOutputSize(crop, sw, sh, s);
+
+  const canvas = document.createElement('canvas');
+  canvas.width  = outW;
+  canvas.height = outH;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  // Tối ưu tốc độ: dùng 'medium' thay vì 'high' (mắt thường khó phân biệt)
+  ctx.imageSmoothingQuality = 'medium';
+
+  try {
+    if (s.mode === 'stretch') {
+      ctx.drawImage(src, 0, 0, sw, sh, 0, 0, outW, outH);
+    } else if (s.mode === 'fit') {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, outW, outH);
+      const k = Math.min(outW / sw, outH / sh);
+      const dw = sw * k, dh = sh * k;
+      ctx.drawImage(src, 0, 0, sw, sh, (outW - dw) / 2, (outH - dh) / 2, dw, dh);
+    } else {
+      const sx = crop.x * sw, sy = crop.y * sh;
+      const cw = crop.w * sw, ch = crop.h * sh;
+      ctx.drawImage(src, sx, sy, cw, ch, 0, 0, outW, outH);
+    }
+
+    const mime = MIME[s.format];
+    const quality = (s.format === 'png') ? undefined : s.quality;
+    return await canvasToBlob(canvas, mime, quality);
+  } finally {
+    canvas.width = 0; canvas.height = 0;
+    if (isBitmap && typeof src.close === 'function') src.close();
+  }
+}
+
+function makeOutputName(originalName, ext, usedSet) {
+  let base = String(originalName || 'image').replace(/\.[^.\\/]+$/, '');
+  if (!base) base = 'image';
+  base = base.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').trim() || 'image';
+  let name = `${base}.${ext}`;
+  let n = 2;
+  while (usedSet.has(name.toLowerCase())) { name = `${base} (${n}).${ext}`; n++; }
+  usedSet.add(name.toLowerCase());
+  return name;
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.style.display = 'none';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 8000);
+}
+
+function readSettings() {
+  const clampInt = (v, min, max, dflt) => {
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : dflt;
+  };
+  return {
+    targetW: clampInt(dom.inW.value, 1, 10000, 1080),
+    targetH: clampInt(dom.inH.value, 1, 10000, 1080),
+    mode: dom.inMode.value,
+    format: dom.inFormat.value,
+    quality: clampInt(dom.inQuality.value, 50, 100, 90) / 100,
+    keepAspect: dom.inKeepAspect.checked,
+  };
+}
+
+/* =========================================================================
+   CHẠY HÀNG LOẠT (XỬ LÝ SONG SONG TỐI ĐA)
+   ========================================================================= */
+function setBusy(busy) {
+  state.busy = busy;
+  dom.btnRun.disabled = busy;
+  dom.btnClear.disabled = busy;
+  dom.btnPick.disabled = busy || state.loadingFiles;
+  dom.fileInput.disabled = busy;
+  dom.inW.disabled = busy;
+  dom.inH.disabled = busy;
+  dom.inMode.disabled = busy;
+  dom.inFormat.disabled = busy;
+  dom.inKeepAspect.disabled = busy;
+  dom.inQuality.disabled = busy || dom.inFormat.value === 'png';
+  updatePreviewButtons();
+  dom.btnRun.textContent = busy ? '⏳ Đang xử lý...' : '✂️ Cắt & Tải ZIP';
+}
+
+async function run() {
+  if (state.busy || state.loadingFiles) return;
+  const valid = state.items.filter(it => !it.error);
+  if (!valid.length) { showMsg('Chưa có ảnh hợp lệ!', 'error'); return; }
+  if (typeof JSZip === 'undefined') { showMsg('Lỗi tải JSZip!', 'error'); return; }
+
+  const s = readSettings();
+  dom.inW.value = s.targetW;
+  dom.inH.value = s.targetH;
+
+  const total = valid.length;
+  const errors = [];
+  const usedNames = new Set();
+
+  setBusy(true); hideMsg(); setProgress(0, `Đang xử lý 0/${total}...`);
+
+  const tasks = valid.map(item => async () => {
+    try {
+      const blob = await cropImage(item, s);
+      const name = makeOutputName(item.name, s.format, usedNames);
+      return { ok: true, name, blob };
+    } catch (err) {
+      return { ok: false, name: item.name, error: err.message || 'Lỗi không xác định' };
+    }
+  });
+
+  const results = await runInPool(tasks, CROP_POOL_SIZE, (done, t) => {
+    setProgress(Math.round((done / t) * 100), `Đang cắt ${done}/${t} ảnh...`);
+  });
+
+  const zip = new JSZip();
+  for (const res of results) {
+    if (res.ok) {
+      zip.file(res.name, res.blob);
+    } else {
+      errors.push(`${res.name}: ${res.error}`);
+    }
+  }
+
+  setProgress(100, 'Đang nén file ZIP...');
+  await nextFrame();
+
+  let zipBlob;
+  try {
+    zipBlob = await zip.generateAsync(
+      { type: 'blob', compression: 'STORE' },
+      (meta) => setProgress(100, `Đang nén ZIP... ${Math.round(meta.percent)}%`)
+    );
+  } catch (err) {
+    setBusy(false); setProgress(0, 'Có lỗi');
+    showMsg('Không tạo được ZIP: ' + (err.message || err), 'error');
+    return;
+  }
+
+  downloadBlob(zipBlob, 'cropped-images.zip');
+  setBusy(false);
+  const okCount = total - errors.length;
+  setProgress(100, `✅ Hoàn tất! ${okCount}/${total} ảnh.`);
+
+  if (errors.length) {
+    showMsg(`Đã tạo ZIP với ${okCount}/${total} ảnh.\nLỗi:\n• ` + errors.join('\n• '), 'error');
+  } else {
+    showMsg(`🎉 Đã tải xong ${okCount} ảnh!`, 'ok');
+  }
+}
+
+/* =========================================================================
+   GẮN SỰ KIỆN
+   ========================================================================= */
+dom.btnPick.addEventListener('click', (e) => { 
+  e.stopPropagation(); 
+  if (!state.loadingFiles && !state.busy) dom.fileInput.click(); 
+});
+dom.dropzone.addEventListener('click', () => {
+  if (!state.loadingFiles && !state.busy) dom.fileInput.click();
+});
+
+dom.fileInput.addEventListener('change', async (e) => { 
+  await addFiles(e.target.files); 
+  e.target.value = ''; 
+});
+
+['dragenter', 'dragover'].forEach(evt => {
+  dom.dropzone.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    if (!state.loadingFiles && !state.busy) dom.dropzone.classList.add('dragover');
+  });
+});
+['dragleave', 'drop'].forEach(evt => {
+  dom.dropzone.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    dom.dropzone.classList.remove('dragover');
+  });
+});
+dom.dropzone.addEventListener('drop', async (e) => {
+  if (e.dataTransfer.files && !state.loadingFiles && !state.busy) {
+    await addFiles(e.dataTransfer.files);
+  }
+});
+window.addEventListener('dragover', (e) => e.preventDefault());
+window.addEventListener('drop', (e) => e.preventDefault());
+
+dom.inQuality.addEventListener('input', () => { dom.qVal.textContent = dom.inQuality.value; });
+dom.inFormat.addEventListener('change', () => {
+  const isPng = dom.inFormat.value === 'png';
+  dom.qualityField.classList.toggle('disabled', isPng);
+  dom.inQuality.disabled = isPng || state.busy;
+});
+
+let settingsTimeout = null;
+function onSettingsChange() {
+  clearTimeout(settingsTimeout);
+  settingsTimeout = setTimeout(() => {
+    const item = getActiveItem();
+    if (item && dom.inMode.value !== 'custom') {
+      item.cropRect = null;
+    }
+    renderPreview();
+  }, 120);
+}
+dom.inW.addEventListener('input', onSettingsChange);
+dom.inH.addEventListener('input', onSettingsChange);
+dom.inMode.addEventListener('change', () => {
+  const item = getActiveItem();
+  if (item) item.cropRect = null;
+  renderPreview();
+});
+dom.inKeepAspect.addEventListener('change', renderPreview);
+
+dom.previewSource.addEventListener('pointerdown', onPointerDown);
+window.addEventListener('pointermove', onPointerMove);
+window.addEventListener('pointerup', onPointerUp);
+window.addEventListener('pointercancel', onPointerUp);
+
+dom.btnResetPos.addEventListener('click', () => {
+  const item = getActiveItem();
+  if (!item) return;
+  item.cropRect = null;
+  updatePreviewButtons();
+  renderPreview();
+});
+
+dom.btnApplyAll.addEventListener('click', () => {
+  const active = getActiveItem();
+  if (!active || !active.cropRect) return;
+  let count = 0;
+  state.items.forEach(it => {
+    if (!it.error) { it.cropRect = { ...active.cropRect }; count++; }
+  });
+  showMsg(`Đã áp dụng vùng cắt cho ${count} ảnh.`, 'ok');
+});
+
+dom.btnRun.addEventListener('click', run);
+dom.btnClear.addEventListener('click', clearAll);
+
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(); }
+});
+
+updateCount();
+updatePreviewButtons();
+renderPreview();
+setProgress(0, 'Sẵn sàng');
+</script>
 </body>
-    </html>
+</html> 
